@@ -1,0 +1,96 @@
+/* === ESTRUCTURA GENERAL === */
+form {
+  max-width: 500px;
+  margin: 3rem auto;
+  background: #ffffff;
+  padding: 2rem 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: all 0.3s ease;
+}
+
+form:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* === CAMPOS === */
+form div {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+}
+
+label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.4rem;
+}
+
+input,
+select {
+  padding: 0.7rem 1rem;
+  border: 1.8px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover y focus elegantes */
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #2e8b57;
+  box-shadow: 0 0 6px rgba(46, 139, 87, 0.3);
+}
+
+/* Archivo */
+input[type="file"] {
+  border: none;
+  font-size: 0.9rem;
+  padding: 0;
+}
+
+/* === MENSAJE DE ERROR === */
+p {
+  background: #ffe5e5;
+  color: #d63031;
+  border-left: 4px solid #d63031;
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* === BOTÓN === */
+button {
+  width: 100%;
+  background: linear-gradient(135deg, #2e8b57, #3cb371);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 0.9rem 1.2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.1s ease;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #3cb371, #2e8b57);
+  transform: scale(1.02);
+}
+
+button:disabled {
+  background: #cfd8dc;
+  color: #666;
+  cursor: not-allowed;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
+  form {
+    width: 90%;
+    padding: 1.5rem;
+  }
+}

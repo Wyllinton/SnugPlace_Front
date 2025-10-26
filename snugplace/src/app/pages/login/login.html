@@ -1,1 +1,22 @@
-<p>login works!</p>
+<form [formGroup]="loginForm" (ngSubmit)="loginUser()" novalidate="">
+    <div class="login-header">
+        <h2>Inicia sesión en SnugPlace</h2>
+        <p>Bienvenido de nuevo 👋 Ingresa tus datos para continuar</p>
+    </div>
+
+    <div>
+        <label>Correo: </label>
+        <input type="email" formControlName="email" />
+    </div>
+
+    <div>
+        <label>Contraseña: </label>
+        <input type="password" formControlName="password" />
+    </div>
+
+    <p class="register-link">
+        ¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a>
+    </p>
+
+    <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
+</form>
