@@ -1,4 +1,10 @@
 <form [formGroup]="registerForm" (ngSubmit)="createUser()" novalidate="">
+    
+    <div class="register-header">
+        <h2>Regístrate en SnugPlace</h2>
+        <p>Y encuentra los mejores lugares 😎</p>
+    </div>
+
     <div>
         <label>Nombre: </label>
         <input type="text" formControlName="name" />
