@@ -1,1 +1,18 @@
-<p>profile works!</p>
+<form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
+  <div>
+    <label>Nombre:</label>
+    <input type="text" formControlName="name">
+  </div>
+
+  <div>
+    <label>Teléfono:</label>
+    <input type="text" formControlName="phoneNumber">
+  </div>
+
+  <div>
+    <label>Descripción:</label>
+    <textarea formControlName="description"></textarea>
+  </div>
+
+  <button [disabled]="profileForm.invalid">Actualizar perfil</button>
+</form>
