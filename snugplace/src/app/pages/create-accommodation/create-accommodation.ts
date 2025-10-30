@@ -18,7 +18,7 @@ export class CreateAccommodation {
   constructor(private formBuilder: FormBuilder) {
     this.createForm();
     this.cities = ['Bogotá', 'Medellín', 'Cali','Barranquilla','Cartagena','Bucaramanga','Pereira','Manizales','Armenia','Santa Marta','Ibagué','Neiva','Pasto'];
-    this.servicesList = ['WiFi', 'Desayuno incluido', 'Piscina', 'Aire acondicionado', 'Estacionamiento gratuito', 'Gimnasio', 'Transporte al aeropuerto', 'Admite mascotas', 'Servicio de limpieza', 'TV por cable'];
+    this.servicesList = ['WiFi', 'Desayuno incluido', 'Piscina', 'Aire acondicionado', 'Estacionamiento gratuito', 'Gimnasio', 'Admite mascotas', 'Servicio de limpieza', 'TV por cable'];
   }
 
   private createForm() {

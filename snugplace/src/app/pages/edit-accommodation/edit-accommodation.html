@@ -1,1 +1,45 @@
-<p>edit-accommodation works!</p>
+<form [formGroup]="editAccommodationForm" (ngSubmit)="editAccommodation()" novalidate>
+    <div>
+        <label>Título: </label>
+        <input type="text" formControlName="title"/>
+    </div>
+
+    <div>
+        <label>Descripción: </label>
+        <textarea formControlName="description"></textarea>>
+    </div>
+
+    <div>
+        <label>Precio por noche: </label>
+        <input type="number" formControlName="priceDay"/>
+    </div>
+
+    <div>
+        <label>Máximo de huéspedes: </label>
+        <input type="number" formControlName="guestsCount"/>
+    </div>
+
+    <div>
+        <label>Servicios adicionales:</label>
+        <div class="services-container">
+            @for (service of servicesList; track $index) {
+            <div>
+                <input 
+                    type="checkbox"
+                    [value]="service"
+                    (change)="onServiceChange($event)"
+                />
+            <label>{{ service }}</label>
+            </div>
+        }
+        </div>
+    </div>
+
+    <div>
+        <label>Imágenes del alojamiento: </label>
+        <input type="file" multiple (change)="onFileChange($event)"/>
+    </div>
+
+    <button type="submit" [disabled]="editAccommodationForm.invalid">Crear alojamiento</button>
+</form>
+
