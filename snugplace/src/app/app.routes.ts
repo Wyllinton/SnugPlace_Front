@@ -22,7 +22,7 @@ export const routes: Routes = [
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'host/accommodations', component: HostAccommodations },
     { path: 'host/accommodations/create', component: CreateAccommodation },
-    { path: 'host/accommodations/edit/:id', component: EditAccommodation },
+    { path: 'host/accommodations/edit', component: EditAccommodation },
     { path: 'bookings', component: Bookings },
     { path: 'booking/:id', component: BookingDetail },
     { path: 'profile', component: Profile },
