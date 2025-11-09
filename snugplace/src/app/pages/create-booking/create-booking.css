@@ -1,4 +1,4 @@
-.comentario-container {
+.reserva-container {
   min-height: 100vh;
   background: linear-gradient(135deg, rgba(46, 139, 87, 0.08) 0%, rgba(60, 179, 113, 0.05) 100%);
   display: flex;
@@ -8,7 +8,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-.comentario-card {
+.reserva-card {
   background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
@@ -18,31 +18,72 @@
   transition: all 0.3s ease;
 }
 
-.comentario-card:hover {
+.reserva-card:hover {
   box-shadow: 0 12px 50px rgba(0, 0, 0, 0.15);
 }
 
-.comentario-card h3 {
+/* Información del alojamiento */
+.alojamiento-info {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.alojamiento-info img {
+  width: 120px;
+  height: 90px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.alojamiento-detalles h3 {
+  color: #222;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.alojamiento-detalles p {
+  color: #666;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.precio {
+  color: #2e8b57 !important;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.divider {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 1.5rem 0;
+}
+
+.reserva-card h2 {
   color: #222;
   font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
   text-align: center;
-}
-
-.alojamiento-titulo {
-  color: #666;
-  font-size: 1.1rem;
-  text-align: center;
-  margin-bottom: 2rem;
-  font-weight: 500;
 }
 
 /* Form Styles */
-.comment-form {
+.booking-form {
   display: flex;
   flex-direction: column;
-  gap: 1.8rem;
+  gap: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 }
 
 .form-group {
@@ -53,52 +94,18 @@
 .form-label {
   font-weight: 600;
   color: #222;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-}
-
-/* Sistema de estrellas */
-.estrellas-container {
+  margin-bottom: 0.7rem;
+  font-size: 0.95rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.estrellas {
-  display: flex;
+  align-items: center;
   gap: 0.5rem;
 }
 
-.star {
-  font-size: 2.5rem !important;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 4px;
-  padding: 0.2rem;
-}
-
-.star.filled {
-  color: #FFD700;
-  font-variation-settings: 'FILL' 1;
-}
-
-.star.empty {
-  color: #ddd;
-  font-variation-settings: 'FILL' 0;
-}
-
-.star:hover {
-  transform: scale(1.1);
-}
-
-.calificacion-texto {
+.form-label .icon {
+  font-size: 1.2rem;
   color: #666;
-  font-weight: 500;
-  font-size: 0.95rem;
-  text-align: center;
 }
 
-/* Campo de texto */
 .form-control {
   padding: 1rem 1.2rem;
   border: 2px solid #e0e0e0;
@@ -109,9 +116,6 @@
   background: #fff;
   width: 100%;
   box-sizing: border-box;
-  resize: vertical;
-  min-height: 120px;
-  line-height: 1.5;
 }
 
 .form-control:focus {
@@ -126,11 +130,48 @@
   background: #fffafa;
 }
 
+.form-text {
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
 .char-count {
   text-align: right;
   color: #666;
   font-size: 0.85rem;
   margin-top: 0.5rem;
+}
+
+/* Resumen de reserva */
+.resumen-reserva {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 2px solid #e9ecef;
+}
+
+.resumen-reserva h3 {
+  color: #222;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  color: #666;
+}
+
+.resumen-item.total {
+  color: #222;
+  font-size: 1.1rem;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 /* Alertas */
@@ -160,6 +201,32 @@
   flex-shrink: 0;
 }
 
+.alert ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.alert li {
+  margin-bottom: 0.3rem;
+}
+
+/* Información del formulario */
+.form-info {
+  background: rgba(46, 139, 87, 0.05);
+  border: 1px solid rgba(46, 139, 87, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  color: #2e8b57;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.form-info .icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
 /* Botón */
 .btn {
   background: linear-gradient(135deg, #2e8b57, #3cb371);
@@ -178,7 +245,6 @@
   width: 100%;
   letter-spacing: 0.5px;
   font-family: inherit;
-  margin-top: 1rem;
 }
 
 .btn:hover:not(:disabled) {
@@ -232,56 +298,46 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .comentario-container {
+  .reserva-container {
     padding: 100px 1rem 1rem;
   }
 
-  .comentario-card {
+  .reserva-card {
     padding: 2rem 1.5rem;
   }
 
-  .comentario-card h3 {
-    font-size: 1.5rem;
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .star {
-    font-size: 2rem !important;
+  .alojamiento-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .alojamiento-info img {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 1rem;
+  }
+
+  .reserva-card h2 {
+    font-size: 1.5rem;
   }
 }
 
 @media (max-width: 480px) {
-  .comentario-card {
+  .reserva-card {
     padding: 1.5rem 1rem;
     border-radius: 16px;
   }
 
-  .comment-form {
-    gap: 1.5rem;
+  .booking-form {
+    gap: 1.2rem;
   }
 
   .form-control {
     padding: 0.9rem 1rem;
   }
-
-  .estrellas {
-    justify-content: center;
-  }
-
-  .star {
-    font-size: 1.8rem !important;
-  }
-}
-
-/* Efectos adicionales para las estrellas */
-.star {
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.star:hover {
-  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
-}
-
-.star.filled {
-  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.4));
 }

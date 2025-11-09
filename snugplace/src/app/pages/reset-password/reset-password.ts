@@ -5,7 +5,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
   selector: 'app-reset-password',
   imports: [ReactiveFormsModule],
   templateUrl: './reset-password.html',
-  styleUrl: './reset-password.css'
+  styleUrls: ['./reset-password.css']
 })
 export class ResetPassword {
 

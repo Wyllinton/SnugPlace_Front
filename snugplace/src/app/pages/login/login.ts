@@ -7,7 +7,7 @@ import { repeat } from 'rxjs';
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterModule],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrls: ['./login.css']
 })
 export class Login {
 

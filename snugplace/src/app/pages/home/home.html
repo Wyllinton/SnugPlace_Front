@@ -1,1 +1,277 @@
-<p>home works!</p>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SnugPlace - Encuentra tu alojamiento perfecto</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="home.css">
+</head>
+<body>
+  <div class="page-content">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Encuentra tu <span class="highlight">lugar perfecto</span></h1>
+        <p>Descubre alojamientos únicos en los mejores destinos del mundo</p>
+        
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <div class="search-container">
+            <div class="search-field">
+              <label>Destino</label>
+              <input type="text" id="cityInput" placeholder="¿A dónde vas?">
+            </div>
+            <div class="search-field">
+              <label>Llegada</label>
+              <input type="date" id="checkInDisplay" placeholder="Fecha">
+            </div>
+            <div class="search-field">
+              <label>Salida</label>
+              <input type="date" id="checkOutDisplay" placeholder="Fecha">
+            </div>
+            <div class="search-field">
+              <label>Huéspedes</label>
+              <input type="number" id="guestsDisplay" placeholder="Agregar" min="1" value="1">
+            </div>
+            <button class="search-btn" onclick="handleSearch()">
+              <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Filters Popup -->
+          <div class="filters-popup" id="filtersPopup">
+            <div class="filter-section">
+              <label>Ciudad</label>
+              <input type="text" id="city" placeholder="Ej: Medellín, Bogotá, Cartagena">
+            </div>
+
+            <div class="filter-section">
+              <label>Fechas</label>
+              <div class="price-inputs">
+                <input type="date" id="checkIn">
+                <input type="date" id="checkOut">
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <label>Rango de precio</label>
+              <div class="price-inputs">
+                <input type="number" id="minPrice" placeholder="Precio mínimo" min="0">
+                <input type="number" id="maxPrice" placeholder="Precio máximo" min="0">
+              </div>
+            </div>
+
+            <div class="filter-section">
+              <label>Número de huéspedes</label>
+              <input type="number" id="guestsCount" placeholder="1" min="1">
+            </div>
+
+            <div class="filter-section">
+              <label>Servicios</label>
+              <div class="services-grid">
+                <div class="service-item">
+                  <input type="checkbox" id="wifi" value="WIFI">
+                  <label for="wifi">WiFi</label>
+                </div>
+                <div class="service-item">
+                  <input type="checkbox" id="parking" value="PARKING">
+                  <label for="parking">Estacionamiento</label>
+                </div>
+                <div class="service-item">
+                  <input type="checkbox" id="pool" value="POOL">
+                  <label for="pool">Piscina</label>
+                </div>
+                <div class="service-item">
+                  <input type="checkbox" id="gym" value="GYM">
+                  <label for="gym">Gimnasio</label>
+                </div>
+                <div class="service-item">
+                  <input type="checkbox" id="breakfast" value="BREAKFAST">
+                  <label for="breakfast">Desayuno</label>
+                </div>
+                <div class="service-item">
+                  <input type="checkbox" id="ac" value="AIR_CONDITIONING">
+                  <label for="ac">Aire Acondicionado</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="filter-actions">
+              <button class="filter-btn clear" onclick="clearFilters()">Limpiar todo</button>
+              <button class="filter-btn apply" onclick="applyFilters()">Aplicar filtros</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="overlay" id="overlay" onclick="closeFilters()"></div>
+
+    <!-- Features Section -->
+    <section class="features">
+      <h2>¿Por qué elegir SnugPlace?</h2>
+      <div class="features-grid">
+        <div class="feature-item">
+          <div class="feature-icon">
+            <span class="material-symbols-rounded">verified</span>
+          </div>
+          <h3>Verificado</h3>
+          <p>Todos los alojamientos son verificados para garantizar tu seguridad</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <span class="material-symbols-rounded">payments</span>
+          </div>
+          <h3>Mejor precio</h3>
+          <p>Encuentra las mejores ofertas y promociones exclusivas</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">
+            <span class="material-symbols-rounded">support_agent</span>
+          </div>
+          <h3>Soporte 24/7</h3>
+          <p>Asistencia disponible en cualquier momento que lo necesites</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+      <h2>Explora por categoría</h2>
+      <div class="categories-grid">
+        <div class="category-card">
+          <div class="category-info">
+            <h3>Casas de playa</h3>
+            <p>Relájate frente al mar</p>
+          </div>
+        </div>
+        <div class="category-card">
+          <div class="category-info">
+            <h3>Cabañas</h3>
+            <p>Naturaleza y tranquilidad</p>
+          </div>
+        </div>
+        <div class="category-card">
+          <div class="category-info">
+            <h3>Apartamentos</h3>
+            <p>Comodidad urbana</p>
+          </div>
+        </div>
+        <div class="category-card">
+          <div class="category-info">
+            <h3>Villas de lujo</h3>
+            <p>Experiencias premium</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Establecer fecha mínima
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('checkInDisplay').min = today;
+    document.getElementById('checkIn').min = today;
+
+    // Sincronizar cambios entre los campos principales y el popup
+    document.getElementById('cityInput').addEventListener('input', function() {
+      document.getElementById('city').value = this.value;
+    });
+
+    document.getElementById('city').addEventListener('input', function() {
+      document.getElementById('cityInput').value = this.value;
+    });
+
+    document.getElementById('checkInDisplay').addEventListener('change', function() {
+      document.getElementById('checkIn').value = this.value;
+      if (this.value) {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        document.getElementById('checkOutDisplay').min = nextDay.toISOString().split('T')[0];
+        document.getElementById('checkOut').min = nextDay.toISOString().split('T')[0];
+      }
+    });
+
+    document.getElementById('checkIn').addEventListener('change', function() {
+      document.getElementById('checkInDisplay').value = this.value;
+      if (this.value) {
+        const nextDay = new Date(this.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        document.getElementById('checkOutDisplay').min = nextDay.toISOString().split('T')[0];
+        document.getElementById('checkOut').min = nextDay.toISOString().split('T')[0];
+      }
+    });
+
+    document.getElementById('checkOutDisplay').addEventListener('change', function() {
+      document.getElementById('checkOut').value = this.value;
+    });
+
+    document.getElementById('checkOut').addEventListener('change', function() {
+      document.getElementById('checkOutDisplay').value = this.value;
+    });
+
+    document.getElementById('guestsDisplay').addEventListener('change', function() {
+      document.getElementById('guestsCount').value = this.value;
+    });
+
+    document.getElementById('guestsCount').addEventListener('change', function() {
+      document.getElementById('guestsDisplay').value = this.value;
+    });
+
+    function toggleFilters() {
+      const popup = document.getElementById('filtersPopup');
+      const overlay = document.getElementById('overlay');
+      popup.classList.toggle('active');
+      overlay.classList.toggle('active');
+    }
+
+    function closeFilters() {
+      document.getElementById('filtersPopup').classList.remove('active');
+      document.getElementById('overlay').classList.remove('active');
+    }
+
+    function clearFilters() {
+      document.getElementById('city').value = '';
+      document.getElementById('cityInput').value = '';
+      document.getElementById('checkIn').value = '';
+      document.getElementById('checkInDisplay').value = '';
+      document.getElementById('checkOut').value = '';
+      document.getElementById('checkOutDisplay').value = '';
+      document.getElementById('minPrice').value = '';
+      document.getElementById('maxPrice').value = '';
+      document.getElementById('guestsCount').value = '';
+      document.getElementById('guestsDisplay').value = '1';
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    }
+
+    function applyFilters() {
+      closeFilters();
+    }
+
+    function handleSearch() {
+      const services = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+      
+      const filterData = {
+        city: document.getElementById('cityInput').value || null,
+        checkIn: document.getElementById('checkInDisplay').value || null,
+        checkOut: document.getElementById('checkOutDisplay').value || null,
+        minPrice: document.getElementById('minPrice').value ? parseFloat(document.getElementById('minPrice').value) : null,
+        maxPrice: document.getElementById('maxPrice').value ? parseFloat(document.getElementById('maxPrice').value) : null,
+        guestsCount: document.getElementById('guestsDisplay').value ? parseInt(document.getElementById('guestsDisplay').value) : null,
+        services: services.length > 0 ? services : null,
+        page: 0
+      };
+
+      console.log('Búsqueda:', filterData);
+      alert('¡Búsqueda iniciada! Revisa la consola para ver los filtros.');
+    }
+
+    // Inicializar valores
+    document.getElementById('guestsDisplay').value = '1';
+    document.getElementById('guestsCount').value = '1';
+  </script>
+</body>
+</html>

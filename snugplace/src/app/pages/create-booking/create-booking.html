@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar Reserva - SnugPlace</title>
+  <link rel="stylesheet" href="create-booking.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="reserva-container">
+    <div class="reserva-card">
+      
+      <!-- Información del alojamiento -->
+      <div class="alojamiento-info">
+        <img id="accommodationImage" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop" alt="Alojamiento">
+        <div class="alojamiento-detalles">
+          <h3 id="accommodationTitle">Hermoso apartamento en el centro</h3>
+          <p><span class="material-symbols-rounded icon">location_on</span> <span id="accommodationCity">Medellín</span></p>
+          <p class="precio" id="accommodationPrice">$120.000 / noche</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2>Completa tu reserva</h2>
+        
+      <form id="bookingForm" class="booking-form" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fechaInicio" class="form-label">
+              <span class="material-symbols-rounded icon">calendar_today</span>
+              Check-in *
+            </label>
+            <input 
+              type="date" 
+              id="fechaInicio" 
+              name="checkInDate" 
+              class="form-control"
+              required>
+            <div class="error-message" id="checkInDateError"></div>
+          </div>
+
+          <div class="form-group">
+            <label for="fechaFin" class="form-label">
+              <span class="material-symbols-rounded icon">calendar_today</span>
+              Check-out *
+            </label>
+            <input 
+              type="date" 
+              id="fechaFin" 
+              name="checkOutDate" 
+              class="form-control"
+              required>
+            <div class="error-message" id="checkOutDateError"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="numeroHuespedes" class="form-label">
+            <span class="material-symbols-rounded icon">group</span>
+            Número de huéspedes *
+          </label>
+          <input 
+            type="number" 
+            id="numeroHuespedes" 
+            name="guestsCount" 
+            class="form-control"
+            min="1"
+            max="6"
+            value="1"
+            required>
+          <small class="form-text">
+            Capacidad máxima: <span id="maxGuests">6</span> huéspedes
+          </small>
+          <div class="error-message" id="guestsCountError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="comentarios" class="form-label">
+            <span class="material-symbols-rounded icon">chat</span>
+            Comentarios adicionales (opcional)
+          </label>
+          <textarea 
+            id="comentarios" 
+            name="comments" 
+            class="form-control"
+            rows="3"
+            placeholder="¿Algo que el anfitrión deba saber?"></textarea>
+          <small class="char-count">
+            <span id="charCount">0</span> / 500 caracteres
+          </small>
+        </div>
+
+        <!-- Resumen de la reserva -->
+        <div class="resumen-reserva">
+          <h3>Resumen</h3>
+          <div class="resumen-item">
+            <span>Precio por noche:</span>
+            <span id="pricePerNight">$120.000</span>
+          </div>
+          <div class="resumen-item">
+            <span>Número de noches:</span>
+            <span id="numNights">0</span>
+          </div>
+          <div class="divider"></div>
+          <div class="resumen-item total">
+            <span><strong>Total:</strong></span>
+            <span><strong id="totalPrice">$0</strong></span>
+          </div>
+        </div>
+
+        <!-- Errores generales -->
+        <div class="alert alert-error" id="generalErrors" style="display: none;">
+          <ul id="errorsList"></ul>
+        </div>
+
+        <div class="alert alert-error" id="errorMessage" style="display: none;">
+          <span class="material-symbols-rounded icon">error</span>
+          <span id="errorText"></span>
+        </div>
+
+        <div class="alert alert-success" id="successMessage" style="display: none;">
+          <span class="material-symbols-rounded icon">check_circle</span>
+          <span id="successText"></span>
+        </div>
+
+        <div class="form-info">
+          <p><span class="material-symbols-rounded icon">info</span> Podrás cancelar esta reserva hasta 48 horas antes del check-in</p>
+        </div>
+
+        <button 
+          type="submit" 
+          class="btn btn-primary btn-block"
+          id="submitButton">
+          <span class="btn-content">
+            <span class="material-symbols-rounded icon">check</span>
+            Confirmar reserva
+          </span>
+          <span class="btn-loading" style="display: none;">
+            <span class="spinner"></span> Procesando...
+          </span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Datos del alojamiento (simulados)
+    const accommodation = {
+      id: 1,
+      title: "Hermoso apartamento en el centro",
+      city: "Medellín",
+      priceDay: 120000,
+      guestsCount: 6,
+      mainImage: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop"
+    };
+
+    // Inicializar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar datos del alojamiento
+      document.getElementById('accommodationTitle').textContent = accommodation.title;
+      document.getElementById('accommodationCity').textContent = accommodation.city;
+      document.getElementById('accommodationPrice').textContent = formatPrice(accommodation.priceDay) + ' / noche';
+      document.getElementById('maxGuests').textContent = accommodation.guestsCount;
+      document.getElementById('pricePerNight').textContent = formatPrice(accommodation.priceDay);
+      
+      // Configurar fecha mínima (hoy)
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fechaInicio').min = today;
+      document.getElementById('fechaFin').min = today;
+
+      // Event listeners
+      document.getElementById('fechaInicio').addEventListener('change', updateDates);
+      document.getElementById('fechaFin').addEventListener('change', updateDates);
+      document.getElementById('numeroHuespedes').addEventListener('change', validateGuests);
+      document.getElementById('comentarios').addEventListener('input', updateCharCount);
+      
+      document.getElementById('bookingForm').addEventListener('submit', handleSubmit);
+      
+      // Validación en tiempo real
+      const inputs = document.querySelectorAll('input, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('blur', validateField);
+        input.addEventListener('input', clearFieldError);
+      });
+    });
+
+    // Funciones de utilidad
+    function formatPrice(price) {
+      return '$' + price.toLocaleString('es-CO');
+    }
+
+    function updateCharCount() {
+      const textarea = document.getElementById('comentarios');
+      const charCount = textarea.value.length;
+      document.getElementById('charCount').textContent = charCount;
+    }
+
+    function updateDates() {
+      const checkIn = document.getElementById('fechaInicio').value;
+      const checkOut = document.getElementById('fechaFin').value;
+      
+      if (checkIn && checkOut) {
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+        
+        if (end <= start) {
+          document.getElementById('fechaFin').value = '';
+          showFieldError('checkOutDateError', 'La fecha de check-out debe ser posterior al check-in');
+          updateTotalPrice(0);
+          return;
+        }
+        
+        const timeDiff = end.getTime() - start.getTime();
+        const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        updateTotalPrice(nights);
+      } else {
+        updateTotalPrice(0);
+      }
+    }
+
+    function updateTotalPrice(nights) {
+      document.getElementById('numNights').textContent = nights;
+      const total = nights * accommodation.priceDay;
+      document.getElementById('totalPrice').textContent = formatPrice(total);
+      
+      // Actualizar estado del botón
+      const submitButton = document.getElementById('submitButton');
+      submitButton.disabled = nights === 0;
+    }
+
+    function validateGuests() {
+      const guestsInput = document.getElementById('numeroHuespedes');
+      const guests = parseInt(guestsInput.value);
+      
+      if (guests < 1) {
+        showFieldError('guestsCountError', 'El número de huéspedes debe ser al menos 1');
+        guestsInput.value = 1;
+      } else if (guests > accommodation.guestsCount) {
+        showFieldError('guestsCountError', `Máximo ${accommodation.guestsCount} huéspedes permitidos`);
+        guestsInput.value = accommodation.guestsCount;
+      } else {
+        clearFieldError('guestsCountError');
+      }
+    }
+
+    // Validación
+    function validateField(event) {
+      const field = event.target;
+      const errorId = field.name + 'Error';
+      
+      if (field.hasAttribute('required') && !field.value.trim()) {
+        showFieldError(errorId, 'Este campo es obligatorio');
+        field.classList.add('is-invalid');
+      } else {
+        clearFieldError(errorId);
+        field.classList.remove('is-invalid');
+      }
+    }
+
+    function showFieldError(elementId, message) {
+      const errorElement = document.getElementById(elementId);
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+
+    function clearFieldError(elementId) {
+      if (typeof elementId === 'string') {
+        const errorElement = document.getElementById(elementId);
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+      } else {
+        // Si es un evento
+        const field = elementId.target;
+        const errorId = field.name + 'Error';
+        clearFieldError(errorId);
+        field.classList.remove('is-invalid');
+      }
+    }
+
+    function showError(message) {
+      const errorElement = document.getElementById('errorMessage');
+      document.getElementById('errorText').textContent = message;
+      errorElement.style.display = 'flex';
+      document.getElementById('successMessage').style.display = 'none';
+    }
+
+    function showSuccess(message) {
+      const successElement = document.getElementById('successMessage');
+      document.getElementById('successText').textContent = message;
+      successElement.style.display = 'flex';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    function hideAlerts() {
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'none';
+      document.getElementById('generalErrors').style.display = 'none';
+    }
+
+    // Manejo del envío del formulario
+    function handleSubmit(event) {
+      event.preventDefault();
+      hideAlerts();
+      
+      // Validar todos los campos
+      let isValid = true;
+      const errors = [];
+      
+      const checkInDate = document.getElementById('fechaInicio');
+      const checkOutDate = document.getElementById('fechaFin');
+      const guestsCount = document.getElementById('numeroHuespedes');
+      
+      if (!checkInDate.value) {
+        showFieldError('checkInDateError', 'La fecha de check-in es obligatoria');
+        isValid = false;
+        errors.push('La fecha de check-in es obligatoria');
+      }
+      
+      if (!checkOutDate.value) {
+        showFieldError('checkOutDateError', 'La fecha de check-out es obligatoria');
+        isValid = false;
+        errors.push('La fecha de check-out es obligatoria');
+      }
+      
+      if (checkInDate.value && checkOutDate.value) {
+        const start = new Date(checkInDate.value);
+        const end = new Date(checkOutDate.value);
+        if (end <= start) {
+          showFieldError('checkOutDateError', 'La fecha de check-out debe ser posterior al check-in');
+          isValid = false;
+          errors.push('La fecha de check-out debe ser posterior al check-in');
+        }
+      }
+      
+      if (!guestsCount.value || guestsCount.value < 1) {
+        showFieldError('guestsCountError', 'El número de huéspedes es obligatorio');
+        isValid = false;
+        errors.push('El número de huéspedes es obligatorio');
+      }
+      
+      const nights = parseInt(document.getElementById('numNights').textContent);
+      if (nights === 0) {
+        isValid = false;
+        errors.push('Selecciona fechas válidas para calcular el total');
+      }
+      
+      if (!isValid) {
+        showGeneralErrors(errors);
+        return;
+      }
+      
+      // Simular envío
+      simulateBooking();
+    }
+
+    function showGeneralErrors(errors) {
+      if (errors.length > 0) {
+        const errorsList = document.getElementById('errorsList');
+        errorsList.innerHTML = '';
+        errors.forEach(error => {
+          const li = document.createElement('li');
+          li.textContent = error;
+          errorsList.appendChild(li);
+        });
+        document.getElementById('generalErrors').style.display = 'block';
+      }
+    }
+
+    function simulateBooking() {
+      const submitButton = document.getElementById('submitButton');
+      const btnContent = document.querySelector('.btn-content');
+      const btnLoading = document.querySelector('.btn-loading');
+      
+      // Mostrar estado de carga
+      btnContent.style.display = 'none';
+      btnLoading.style.display = 'flex';
+      submitButton.disabled = true;
+      
+      // Simular llamada a la API
+      setTimeout(() => {
+        // Simular éxito (90% de las veces)
+        if (Math.random() > 0.1) {
+          showSuccess('¡Reserva confirmada exitosamente! Te hemos enviado un email con los detalles.');
+          document.getElementById('bookingForm').reset();
+          updateTotalPrice(0);
+          updateCharCount();
+        } else {
+          showError('Error al procesar la reserva. Por favor, intenta nuevamente.');
+        }
+        
+        // Restaurar botón
+        btnContent.style.display = 'flex';
+        btnLoading.style.display = 'none';
+        submitButton.disabled = false;
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

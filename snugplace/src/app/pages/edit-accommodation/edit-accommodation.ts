@@ -6,7 +6,7 @@ import { repeat } from 'rxjs';
   selector: 'app-edit-accommodation',
   imports: [ReactiveFormsModule],
   templateUrl: './edit-accommodation.html',
-  styleUrl: './edit-accommodation.css'
+  styleUrls: ['./edit-accommodation.css']
 })
 export class EditAccommodation {
 

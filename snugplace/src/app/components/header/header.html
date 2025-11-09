@@ -1,25 +1,39 @@
-<header class="p-3 bg-primary text-white">
-  <div class="container">
-    <div class="d-flex flex-wrap align-items-center justify-content-between">
-      
-      <!-- Logo y título -->
-      <a routerLink="" class="d-flex align-items-center text-white text-decoration-none">
-        <span class="material-symbols-rounded fs-2 me-2">globe_location_pin</span>
-        <span class="fs-4">{{ title() }}</span>
-      </a>
+<!-- header.html -->
+<header class="navbar-snug" [class.scrolled]="isScrolled">
+  <div class="nav-container">
+    
+    <!-- Logo -->
+    <a routerLink="" class="logo">
+      <span class="material-symbols-rounded">globe_location_pin</span>
+      <span>{{ title() }}</span>
+    </a>
 
-      <!-- Navegación -->
-      <ul class="nav mb-2 mb-md-0">
-        <li><a routerLink="/my-places" class="nav-link px-2 text-white">Gestión Alojamientos</a></li>
-        <li><a routerLink="/bookings" class="nav-link px-2 text-white">Mis reservas</a></li>
-      </ul>
+    <!-- Navegación Desktop -->
+    <ul class="nav-links desktop-nav">
+      <li><a routerLink="/my-places" class="nav-link-snug">Gestión Alojamientos</a></li>
+      <li><a routerLink="/bookings" class="nav-link-snug">Mis reservas</a></li>
+    </ul>
 
-      <!-- Botones -->
-      <div>
-        <button routerLink="/login" class="btn btn-outline-light me-2">Login</button>
-        <button routerLink="/register" class="btn btn-light text-primary">Crear cuenta</button>
-      </div>
-
+    <!-- Botones de acción -->
+    <div class="nav-actions">
+      <button routerLink="/login" class="btn-outline-snug">Login</button>
+      <button routerLink="/register" class="btn-primary-snug">Crear cuenta</button>
     </div>
+
+    <!-- Menú móvil (hamburguesa) -->
+    <button class="menu-toggle" (click)="toggleMenu()">
+      <span class="material-symbols-rounded">{{ menuOpen ? 'close' : 'menu' }}</span>
+    </button>
+
+  </div>
+
+  <!-- Menú móvil desplegable -->
+  <div class="mobile-menu" [class.active]="menuOpen">
+    <ul class="mobile-nav-links">
+      <li><a routerLink="/my-places" (click)="closeMenu()">Gestión Alojamientos</a></li>
+      <li><a routerLink="/bookings" (click)="closeMenu()">Mis reservas</a></li>
+      <li><a routerLink="/login" (click)="closeMenu()">Login</a></li>
+      <li><a routerLink="/register" (click)="closeMenu()">Crear cuenta</a></li>
+    </ul>
   </div>
 </header>

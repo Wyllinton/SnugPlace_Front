@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-host-accommodations',
   imports: [],
   templateUrl: './host-accommodations.html',
-  styleUrl: './host-accommodations.css'
+  styleUrls: ['./host-accommodations.css']
 })
 export class HostAccommodations {
 

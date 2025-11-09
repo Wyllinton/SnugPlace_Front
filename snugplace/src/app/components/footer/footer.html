@@ -1,15 +1,70 @@
-<footer class="border-top py-4 my-4">
-    <div class="container d-flex flex-wrap justify-content-between align-items-center">
+<!-- src/app/components/footer/footer.component.html -->
 
-        <span class="text-body-secondary">Universidad del Quindío 💚</span>
+<footer class="footer-snug">
+  <div class="footer-container">
+    
+    <!-- Sección superior con logo y enlaces -->
+    <div class="footer-top">
+      
+      <!-- Logo y descripción -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="material-symbols-rounded">globe_location_pin</span>
+          <span>SnugPlace</span>
+        </div>
+        <p>Encuentra tu lugar perfecto en los mejores destinos del mundo</p>
+      </div>
 
-        <ul class="nav list-unstyled d-flex mb-0">
-            <li class="ms-3"><a href="#" class="text-body-secondary text-decoration-none">Términos y condiciones</a>
-            </li>
-            <li class="ms-3"><a href="#" class="text-body-secondary text-decoration-none">Política de privacidad</a>
-            </li>
-            <li class="ms-3"><a href="#" class="text-body-secondary text-decoration-none">Contacto</a></li>
+      <!-- Enlaces navegación -->
+      <div class="footer-links-section">
+        <h4>Navegación</h4>
+        <ul>
+          <li><a routerLink="">Inicio</a></li>
+          <li><a routerLink="/my-places">Gestión Alojamientos</a></li>
+          <li><a routerLink="/bookings">Mis reservas</a></li>
         </ul>
+      </div>
+
+      <!-- Enlaces legales -->
+      <div class="footer-links-section">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Términos y condiciones</a></li>
+          <li><a href="#">Política de privacidad</a></li>
+          <li><a href="#">Contacto</a></li>
+        </ul>
+      </div>
+
+      <!-- Redes sociales -->
+      <div class="footer-links-section">
+        <h4>Síguenos</h4>
+        <div class="social-links">
+          <a href="#" class="social-icon" aria-label="Facebook">
+            <span class="material-symbols-rounded">facebook</span>
+          </a>
+          <a href="#" class="social-icon" aria-label="Instagram">
+            <span class="material-symbols-rounded">photo_camera</span>
+          </a>
+          <a href="#" class="social-icon" aria-label="Twitter">
+            <span class="material-symbols-rounded">chat</span>
+          </a>
+        </div>
+      </div>
 
     </div>
+
+    <!-- Separador -->
+    <div class="footer-divider"></div>
+
+    <!-- Sección inferior -->
+    <div class="footer-bottom">
+      <p class="copyright">
+        © {{ currentYear }} SnugPlace. Universidad del Quindío 💚
+      </p>
+      <p class="tagline">
+        Hecho con ❤️ en Colombia
+      </p>
+    </div>
+
+  </div>
 </footer>

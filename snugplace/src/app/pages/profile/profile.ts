@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
   selector: 'app-profile',
   imports: [ReactiveFormsModule ],
   templateUrl: './profile.html',
-  styleUrl: './profile.css'
+  styleUrls: ['./profile.css']
 })
 export class Profile {
   profileForm!: FormGroup;

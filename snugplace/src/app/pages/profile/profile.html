@@ -1,18 +1,65 @@
-<form [formGroup]="profileForm" (ngSubmit)="updateProfile()">
-  <div>
-    <label>Nombre:</label>
-    <input type="text" formControlName="name">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Perfil - SnugPlace</title>
+  <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+  <div class="profile-edit-container">
+    <div class="profile-edit-card">
+      <div class="profile-header">
+        <h2>Editar Perfil</h2>
+        <p>Actualiza tu información personal</p>
+      </div>
+
+      <form id="profileForm" class="profile-form">
+        <!-- Foto de perfil -->
+        <div class="photo-section">
+          <div class="photo-preview">
+            <img id="photoPreview" src="" alt="Foto de perfil">
+            <div class="photo-placeholder" id="photoPlaceholder">
+              <span class="material-symbols-rounded">person</span>
+            </div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" style="display: none;">
+          <button type="button" class="photo-btn" onclick="document.getElementById('photoInput').click()">
+            Cambiar foto
+          </button>
+        </div>
+
+        <!-- Campos del formulario -->
+        <div class="form-group">
+          <label for="name">Nombre completo *</label>
+          <input type="text" id="name" name="name" required>
+          <span class="error-message" id="nameError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="phoneNumber">Número de teléfono *</label>
+          <input type="tel" id="phoneNumber" name="phoneNumber" required>
+          <span class="error-message" id="phoneError"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Descripción *</label>
+          <textarea id="description" name="description" rows="4" placeholder="Cuéntanos sobre ti..." required></textarea>
+          <span class="error-message" id="descriptionError"></span>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="cancelEdit()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
-  <div>
-    <label>Teléfono:</label>
-    <input type="text" formControlName="phoneNumber">
-  </div>
-
-  <div>
-    <label>Descripción:</label>
-    <textarea formControlName="description"></textarea>
-  </div>
-
-  <button [disabled]="profileForm.invalid">Actualizar perfil</button>
-</form>
+  <script src="js/profile-edit.ts"></script>
+</body>
+</html>

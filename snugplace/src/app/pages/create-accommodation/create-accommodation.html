@@ -1,64 +1,358 @@
-<form [formGroup]="createAccommodationForm" (ngSubmit)="createAccommodation()" novalidate>
-    <div>
-        <label>Título: </label>
-        <input type="text" formControlName="title"/>
-    </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Alojamiento - SnugPlace</title>
+  <link rel="stylesheet" href="create-accommodation.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="form-container">
+    <div class="form-card">
+      <div class="form-header">
+        <h2>Crear Nuevo Alojamiento</h2>
+        <p>Comparte tu espacio con viajeros de todo el mundo 🌍</p>
+      </div>
 
-    <div>
-        <label>Descripción: </label>
-        <textarea formControlName="description"></textarea>>
-    </div>
-
-    <div>
-        <label>Ciudad: </label>
-        <select formControlName="city">
-        <option value="" disabled selected>Seleccione una ciudad</option>
-        @for (item of cities; track $index) {
-            <option value="{{item}}">{{item}}</option>
-        }
-    </select>
-    </div>
-
-    <div>
-        <label>Dirección: </label>
-        <input type="text" formControlName="address" />
-    </div>
-
-    <div>
-        <label>Ubicación (Latitud, Longitud): </label>
-        <input type="text" placeholder="" formControlName="location"/>
-    </div>
-
-    <div>
-        <label>Precio por noche: </label>
-        <input type="number" formControlName="priceDay"/>
-    </div>
-
-    <div>
-        <label>Máximo de huéspedes: </label>
-        <input type="number" formControlName="guestsCount"/>
-    </div>
-
-    <div>
-        <label>Servicios adicionales:</label>
-        <div class="services-container">
-            @for (service of servicesList; track $index) {
-            <div>
-                <input 
-                    type="checkbox"
-                    [value]="service"
-                    (change)="onServiceChange($event)"
-                />
-            <label>{{ service }}</label>
-            </div>
-        }
+      <form id="accommodationForm" class="accommodation-form" novalidate>
+        
+        <!-- Título -->
+        <div class="form-group">
+          <label for="title">Título *</label>
+          <input 
+            type="text" 
+            id="title" 
+            name="title"
+            placeholder="Ej: Acogedor apartamento en el centro"
+            required
+          >
+          <span class="error-message" id="titleError"></span>
         </div>
-    </div>
 
-    <div>
-        <label>Imágenes del alojamiento: </label>
-        <input type="file" multiple (change)="onFileChange($event)"/>
-    </div>
+        <!-- Descripción -->
+        <div class="form-group">
+          <label for="description">Descripción *</label>
+          <textarea 
+            id="description" 
+            name="description"
+            placeholder="Describe tu alojamiento, qué hace especial, qué pueden esperar los huéspedes..."
+            rows="5"
+            required
+          ></textarea>
+          <span class="error-message" id="descriptionError"></span>
+          <div class="char-counter">
+            <span id="charCount">0</span>/1000
+          </div>
+        </div>
 
-    <button type="submit" [disabled]="createAccommodationForm.invalid">Crear alojamiento</button>
-</form>
+        <!-- Ciudad y Dirección -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">Ciudad *</label>
+            <select id="city" name="city" required>
+              <option value="" disabled selected>Seleccione una ciudad</option>
+              <option value="Bogotá">Bogotá</option>
+              <option value="Medellín">Medellín</option>
+              <option value="Cali">Cali</option>
+              <option value="Barranquilla">Barranquilla</option>
+              <option value="Cartagena">Cartagena</option>
+              <option value="Bucaramanga">Bucaramanga</option>
+              <option value="Pereira">Pereira</option>
+              <option value="Manizales">Manizales</option>
+              <option value="Armenia">Armenia</option>
+              <option value="Santa Marta">Santa Marta</option>
+              <option value="Ibagué">Ibagué</option>
+              <option value="Neiva">Neiva</option>
+              <option value="Pasto">Pasto</option>
+            </select>
+            <span class="error-message" id="cityError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Dirección *</label>
+            <input 
+              type="text" 
+              id="address" 
+              name="address"
+              placeholder="Calle, número, barrio"
+              required
+            >
+            <span class="error-message" id="addressError"></span>
+          </div>
+        </div>
+
+        <!-- Ubicación -->
+        <div class="form-group">
+          <label for="location">Ubicación (Latitud, Longitud) *</label>
+          <input 
+            type="text" 
+            id="location" 
+            name="location"
+            placeholder="Ej: 6.2442, -75.5812"
+            required
+          >
+          <span class="error-message" id="locationError"></span>
+          <small class="helper-text">Formato: Latitud, Longitud (puedes obtenerlas en Google Maps)</small>
+        </div>
+
+        <!-- Precio y Huéspedes -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="priceDay">Precio por noche *</label>
+            <div class="input-with-icon">
+              <span class="currency">$</span>
+              <input 
+                type="number" 
+                id="priceDay" 
+                name="priceDay"
+                placeholder="0"
+                min="1"
+                required
+              >
+            </div>
+            <span class="error-message" id="priceDayError"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="guestsCount">Máximo de huéspedes *</label>
+            <div class="input-with-icon">
+              <span class="material-symbols-rounded icon">group</span>
+              <input 
+                type="number" 
+                id="guestsCount" 
+                name="guestsCount"
+                placeholder="1"
+                min="1"
+                required
+              >
+            </div>
+            <span class="error-message" id="guestsCountError"></span>
+          </div>
+        </div>
+
+        <!-- Servicios adicionales -->
+        <div class="form-group">
+          <label class="section-label">Servicios adicionales</label>
+          <div class="services-grid">
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="WiFi">
+              <span class="checkmark"></span>
+              <span class="service-name">WiFi</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Desayuno incluido">
+              <span class="checkmark"></span>
+              <span class="service-name">Desayuno incluido</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Piscina">
+              <span class="checkmark"></span>
+              <span class="service-name">Piscina</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Aire acondicionado">
+              <span class="checkmark"></span>
+              <span class="service-name">Aire acondicionado</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Estacionamiento gratuito">
+              <span class="checkmark"></span>
+              <span class="service-name">Estacionamiento gratuito</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Gimnasio">
+              <span class="checkmark"></span>
+              <span class="service-name">Gimnasio</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Admite mascotas">
+              <span class="checkmark"></span>
+              <span class="service-name">Admite mascotas</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="Servicio de limpieza">
+              <span class="checkmark"></span>
+              <span class="service-name">Servicio de limpieza</span>
+            </label>
+            <label class="service-checkbox">
+              <input type="checkbox" name="services" value="TV por cable">
+              <span class="checkmark"></span>
+              <span class="service-name">TV por cable</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Imágenes -->
+        <div class="form-group">
+          <label class="section-label">Imágenes del alojamiento</label>
+          <div class="file-upload-box" onclick="document.getElementById('images').click()">
+            <div class="upload-icon">
+              <span class="material-symbols-rounded">cloud_upload</span>
+            </div>
+            <div class="upload-text">
+              <p>Haz clic para seleccionar imágenes</p>
+              <small>Formatos: JPG, PNG, WEBP • Máx. 5MB por imagen</small>
+            </div>
+          </div>
+          <input 
+            type="file" 
+            id="images"
+            name="images"
+            multiple 
+            accept="image/*"
+            class="file-input"
+            onchange="updateFileCount(this)"
+          >
+          <div class="files-selected" id="filesSelected" style="display: none;">
+            <span class="material-symbols-rounded">check_circle</span>
+            <span id="fileCount">0</span> archivo(s) seleccionado(s)
+          </div>
+        </div>
+
+        <!-- Botón de envío -->
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" onclick="cancelCreate()">
+            Cancelar
+          </button>
+          <button type="submit" class="submit-btn">
+            <span class="btn-icon">🏠</span>
+            Crear alojamiento
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Contador de caracteres para descripción
+    document.getElementById('description').addEventListener('input', function() {
+      const charCount = this.value.length;
+      document.getElementById('charCount').textContent = charCount;
+    });
+
+    // Actualizar contador de archivos
+    function updateFileCount(input) {
+      const fileCount = input.files.length;
+      const filesSelected = document.getElementById('filesSelected');
+      const fileCountSpan = document.getElementById('fileCount');
+      
+      if (fileCount > 0) {
+        fileCountSpan.textContent = fileCount;
+        filesSelected.style.display = 'flex';
+      } else {
+        filesSelected.style.display = 'none';
+      }
+    }
+
+    // Validación del formulario
+    document.getElementById('accommodationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Limpiar errores anteriores
+      clearErrors();
+      
+      // Validar campos
+      let isValid = true;
+      
+      const title = document.getElementById('title');
+      const description = document.getElementById('description');
+      const city = document.getElementById('city');
+      const address = document.getElementById('address');
+      const location = document.getElementById('location');
+      const priceDay = document.getElementById('priceDay');
+      const guestsCount = document.getElementById('guestsCount');
+      
+      if (!title.value.trim()) {
+        showError('titleError', 'El título es obligatorio');
+        isValid = false;
+      }
+      
+      if (!description.value.trim()) {
+        showError('descriptionError', 'La descripción es obligatoria');
+        isValid = false;
+      } else if (description.value.trim().length < 20) {
+        showError('descriptionError', 'La descripción debe tener al menos 20 caracteres');
+        isValid = false;
+      }
+      
+      if (!city.value) {
+        showError('cityError', 'La ciudad es obligatoria');
+        isValid = false;
+      }
+      
+      if (!address.value.trim()) {
+        showError('addressError', 'La dirección es obligatoria');
+        isValid = false;
+      }
+      
+      if (!location.value.trim()) {
+        showError('locationError', 'La ubicación es obligatoria');
+        isValid = false;
+      }
+      
+      if (!priceDay.value || priceDay.value < 1) {
+        showError('priceDayError', 'El precio debe ser mayor a 0');
+        isValid = false;
+      }
+      
+      if (!guestsCount.value || guestsCount.value < 1) {
+        showError('guestsCountError', 'El número de huéspedes debe ser mayor a 0');
+        isValid = false;
+      }
+      
+      if (isValid) {
+        // Aquí iría el envío al backend
+        const formData = new FormData(this);
+        console.log('Formulario válido, enviando datos...');
+        
+        // Simular envío
+        alert('¡Alojamiento creado exitosamente!');
+        this.reset();
+        document.getElementById('filesSelected').style.display = 'none';
+        document.getElementById('charCount').textContent = '0';
+      }
+    });
+
+    function showError(elementId, message) {
+      const errorElement = document.getElementById(elementId);
+      errorElement.textContent = message;
+    }
+
+    function clearErrors() {
+      const errorElements = document.querySelectorAll('.error-message');
+      errorElements.forEach(element => {
+        element.textContent = '';
+      });
+    }
+
+    function cancelCreate() {
+      if (confirm('¿Estás seguro de que quieres cancelar? Se perderán los datos no guardados.')) {
+        window.history.back();
+      }
+    }
+
+    // Validación en tiempo real
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        validateField(this);
+      });
+    });
+
+    function validateField(field) {
+      const errorId = field.id + 'Error';
+      const errorElement = document.getElementById(errorId);
+      
+      if (!field.value.trim() && field.hasAttribute('required')) {
+        showError(errorId, 'Este campo es obligatorio');
+        field.classList.add('invalid');
+      } else {
+        errorElement.textContent = '';
+        field.classList.remove('invalid');
+      }
+    }
+  </script>
+</body>
+</html>

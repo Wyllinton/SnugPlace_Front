@@ -6,7 +6,7 @@ import { repeat } from 'rxjs';
   selector: 'app-register',
   imports: [ReactiveFormsModule],
   templateUrl: './register.html',
-  styleUrl: './register.css'
+  styleUrls: ['./register.css']
 })
 export class Register {
 
