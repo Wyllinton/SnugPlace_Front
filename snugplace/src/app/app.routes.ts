@@ -5,6 +5,7 @@ import { Register } from './pages/register/register';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { AccommodationDetail } from './pages/accommodation-detail/accommodation-detail';
+import { AccommodationDetailUser } from './pages/accommodation-detail-user/accommodation-detail-user';
 import { HostAccommodations } from './pages/host-accommodations/host-accommodations';
 import { CreateAccommodation } from './pages/create-accommodation/create-accommodation';
 import { EditAccommodation } from './pages/edit-accommodation/edit-accommodation';
@@ -22,6 +23,7 @@ export const routes: Routes = [
     { path: 'forgot-password', component: ForgotPassword },
     { path: 'reset-password', component: ResetPassword },
     { path: 'accommodation/:id', component: AccommodationDetail },
+    { path: 'accommodation-detail/:id', component: AccommodationDetailUser },
     { path: 'host/accommodations', component: HostAccommodations },
     { path: 'host/accommodations/create', component: CreateAccommodation },
     { path: 'accommodation/edit/:id', component: EditAccommodation },

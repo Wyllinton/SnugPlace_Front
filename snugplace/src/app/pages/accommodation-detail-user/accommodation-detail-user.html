@@ -91,16 +91,10 @@
                         <div class="accommodation-actions">
                             <div class="d-grid gap-2">
                                 <button type="button" 
-                                        [routerLink]="'/accommodation/edit/{{ place.id }}'"
+                                        [routerLink]="['/bookings/create/{{place.id}}', place.id]"
                                         class="btn btn-success d-flex align-items-center justify-content-center gap-2">
-                                    <span class="material-symbols-rounded">edit</span>
-                                    Editar Alojamiento
-                                </button>
-                                <button type="button" 
-                                        (click)="onDelete(place.id)"
-                                        class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2">
-                                    <span class="material-symbols-rounded">delete</span>
-                                    Eliminar Alojamiento
+                                    
+                                    Reservar alojamiento
                                 </button>
                             </div>
                         </div>
