@@ -24,7 +24,7 @@ export const routes: Routes = [
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'host/accommodations', component: HostAccommodations },
     { path: 'host/accommodations/create', component: CreateAccommodation },
-    { path: 'host/accommodations/edit', component: EditAccommodation },
+    { path: 'accommodation/edit/:id', component: EditAccommodation },
     { path: 'bookings', component: Bookings },
     { path: 'bookings/create/:accommodationId', component: CreateBooking},
     { path: 'booking/:id', component: BookingDetail },

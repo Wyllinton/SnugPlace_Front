@@ -1,0 +1,255 @@
+
+form {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    margin-top: 100px;
+}
+
+/* Grupos de formulario */
+form > div {
+    margin-bottom: 1.5rem;
+}
+
+/* Etiquetas */
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+/* Campos de texto y textarea */
+input[type="text"],
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: #198754;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.1);
+}
+
+/* Textarea específico */
+textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+}
+
+/* Contenedor de servicios */
+.services-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.services-container > div {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    transition: all 0.2s ease;
+}
+
+.services-container > div:hover {
+    border-color: #198754;
+    background: #f8fff9;
+}
+
+/* Checkboxes de servicios */
+.services-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 0.75rem;
+    accent-color: #198754;
+    cursor: pointer;
+}
+
+.services-container label {
+    margin: 0;
+    font-weight: 500;
+    color: #495057;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* File input */
+input[type="file"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+input[type="file"]:hover {
+    border-color: #198754;
+    background: #f8fff9;
+}
+
+input[type="file"]::file-selector-button {
+    background: #198754;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    margin-right: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background: #157347;
+}
+
+/* Botón de enviar */
+button[type="submit"] {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: #198754;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+    background: #157347;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.3);
+}
+
+button[type="submit"]:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Estados de validación */
+input.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+}
+
+input.ng-valid.ng-touched,
+textarea.ng-valid.ng-touched {
+    border-color: #198754;
+    background-color: #f8fff9;
+}
+
+/* Mensajes de error (puedes agregarlos después) */
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container.pt-5.pb-5 {
+        margin-top: 60px;
+    }
+    
+    form {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .services-container {
+        grid-template-columns: 1fr;
+    }
+    
+    input[type="text"],
+    input[type="number"],
+    textarea {
+        font-size: 16px; /* Previene zoom en iOS */
+    }
+}
+
+@media (max-width: 480px) {
+    form {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+    
+    button[type="submit"] {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+form > div {
+    animation: fadeIn 0.4s ease-out;
+}
+
+form > div:nth-child(1) { animation-delay: 0.1s; }
+form > div:nth-child(2) { animation-delay: 0.2s; }
+form > div:nth-child(3) { animation-delay: 0.3s; }
+form > div:nth-child(4) { animation-delay: 0.4s; }
+form > div:nth-child(5) { animation-delay: 0.5s; }
+form > div:nth-child(6) { animation-delay: 0.6s; }
+
+/* Mejoras de accesibilidad */
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+    outline: 2px solid #198754;
+    outline-offset: 2px;
+}
+
+/* Estados de carga (para cuando agregues) */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Iconos (si decides agregar material icons después) */
+.material-icons {
+    vertical-align: middle;
+    margin-right: 0.5rem;
+}
