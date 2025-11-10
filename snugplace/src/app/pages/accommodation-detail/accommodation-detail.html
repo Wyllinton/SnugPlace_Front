@@ -124,15 +124,20 @@
                     <div class="card-body">
                         <h6 class="fw-semibold mb-3">Ubicación</h6>
                         <div class="accommodation-location">
-                            <div class="d-flex align-items-center mb-2">
+                            <div class="d-flex align-items-center mb-3">
                                 <span class="material-symbols-rounded filled me-2 text-primary">map</span>
                                 <span class="text-muted">{{ place.address.address }}, {{ place.address.city }}</span>
                             </div>
-                            <!-- Aquí podrías integrar un mapa -->
-                            <div class="location-map-placeholder bg-light rounded p-5 text-center text-muted">
-                                <span class="material-symbols-rounded filled mb-2">map</span>
-                                <p class="mb-0">Mapa de ubicación</p>
-                                <small>Coordenadas: {{ place.address.location.latitude }}, {{ place.address.location.longitude }}</small>
+                            
+                            <!-- Mapa -->
+                            <div id="map" class="accommodation-map rounded"></div>
+                            
+                            <!-- Información de coordenadas -->
+                            <div class="mt-2 text-center text-muted">
+                                <small>
+                                    Coordenadas: {{ place.address.location.latitude | number:'1.4-4' }}, 
+                                    {{ place.address.location.longitude | number:'1.4-4' }}
+                                </small>
                             </div>
                         </div>
                     </div>

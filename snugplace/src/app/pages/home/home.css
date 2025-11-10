@@ -498,3 +498,11 @@ body {
     font-size: 1.8rem;
     }
 }
+
+#map {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+}

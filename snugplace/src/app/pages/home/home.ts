@@ -1,11 +1,14 @@
-import { Component } from '@angular/core';
+
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  imports: [],
+  imports: [RouterModule],
   templateUrl: './home.html',
-  styleUrls: ['./home.css']
+  styleUrl: './home.css'
 })
-export class Home {
+export class Home{
 
+  constructor() { }
 }

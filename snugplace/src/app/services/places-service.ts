@@ -76,7 +76,7 @@ export class PlacesService {
     },
     {
       id: 3,
-      title: 'Cabaña en el Lago Azul',
+      title: 'Apartaestudio cerca a Uniquindio',
       description: 'Relájate en una cabaña frente al lago con acceso directo al muelle.',
       images: [
         'https://res.cloudinary.com/ddm5k1z0t/image/upload/v1760159810/app_name/k95km5l1guvyscl6byvs.png',
@@ -89,7 +89,7 @@ export class PlacesService {
       address: {
         city: 'Guatapé',
         address: 'Orilla del embalse, sector El Peñol',
-        location: { latitude: 6.2333, longitude: -75.1667 }
+        location: { latitude: 4.554343307684577, longitude: -75.6603681833535 }
       }
     }
   ];
