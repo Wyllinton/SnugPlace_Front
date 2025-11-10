@@ -15,7 +15,7 @@ interface Booking {
   styleUrls: ['./comments-accommodation.css']
 })
 
-export class CommentsForm implements OnInit {
+export class CommentsAccommodation implements OnInit {
   @Input() booking!: Booking;
   
   commentForm!: FormGroup;

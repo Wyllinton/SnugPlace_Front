@@ -1,1 +1,151 @@
-<p>accommodation-detail works!</p>
+<div class="container pt-5 pb-5">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h5 class="mb-0 d-flex align-items-center">
+            <span class="material-symbols-rounded filled fs-2 me-3">apartment</span>
+            Detalle del Alojamiento
+        </h5>
+        <button type="button" routerLink="/my-places" 
+                class="btn btn-outline-secondary d-flex align-items-center gap-1">
+            <span class="material-symbols-rounded">arrow_back</span>
+            Volver
+        </button>
+    </div>
+    <hr />
+
+    @if (place) {
+        <!-- Contenido principal -->
+        <div class="row">
+            <!-- Galería de imágenes -->
+            <div class="col-lg-8 mb-4">
+                <div class="card accommodation-gallery">
+                    <div class="card-body p-0">
+                        <!-- Imagen principal -->
+                        <div class="gallery-main">
+                            <img [src]="selectedImage || place.images[0]" 
+                                 [alt]="place.title"
+                                 class="img-fluid rounded-top accommodation-main-image">
+                        </div>
+                        
+                        <!-- Miniaturas -->
+                        <div class="gallery-thumbnails p-3">
+                            <div class="row g-2">
+                                @for (image of place.images; track $index; let i = $index) {
+                                    <div class="col-auto">
+                                        <img [src]="image" 
+                                             [alt]="'Imagen ' + (i + 1) + ' de ' + place.title"
+                                             (click)="selectedImage = image"
+                                             [class.active]="selectedImage === image || (!selectedImage && i === 0)"
+                                             class="img-thumbnail thumbnail">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del alojamiento -->
+            <div class="col-lg-4">
+                <div class="card accommodation-info">
+                    <div class="card-body">
+                        <!-- Título y precio -->
+                        <h4 class="card-title accommodation-title">{{ place.title }}</h4>
+                        <div class="accommodation-price mb-3">
+                            <span class="h3 text-success">${{ place.pricePerNight | number }}</span>
+                            <small class="text-muted">/noche</small>
+                        </div>
+
+                        <!-- Información básica -->
+                        <div class="accommodation-meta mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="material-symbols-rounded filled me-2 text-primary">location_on</span>
+                                <span class="text-muted">{{ place.address.city }}, {{ place.address.address }}</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="material-symbols-rounded filled me-2 text-primary">group</span>
+                                <span class="text-muted">Máximo {{ place.maxGuests }} huéspedes</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="material-symbols-rounded filled me-2 text-primary">person</span>
+                                <span class="text-muted">Anfitrión: {{ place.hostId }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Servicios -->
+                        <div class="accommodation-services mb-4">
+                            <h6 class="fw-semibold mb-3">Servicios incluidos</h6>
+                            <div class="row g-2">
+                                @for (service of place.services; track $index) {
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center">
+                                            <span class="material-symbols-rounded filled me-1 text-success fs-6">check_circle</span>
+                                            <small>{{ service }}</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="accommodation-actions">
+                            <div class="d-grid gap-2">
+                                <button type="button" 
+                                        [routerLink]="['/edit-place', place.id]"
+                                        class="btn btn-warning d-flex align-items-center justify-content-center gap-2">
+                                    <span class="material-symbols-rounded">edit</span>
+                                    Editar Alojamiento
+                                </button>
+                                <button type="button" 
+                                        (click)="onDelete(place.id)"
+                                        class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2">
+                                    <span class="material-symbols-rounded">delete</span>
+                                    Eliminar Alojamiento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="col-12 mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Descripción</h6>
+                        <p class="card-text accommodation-description">{{ place.description }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="col-12 mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="fw-semibold mb-3">Ubicación</h6>
+                        <div class="accommodation-location">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="material-symbols-rounded filled me-2 text-primary">map</span>
+                                <span class="text-muted">{{ place.address.address }}, {{ place.address.city }}</span>
+                            </div>
+                            <!-- Aquí podrías integrar un mapa -->
+                            <div class="location-map-placeholder bg-light rounded p-5 text-center text-muted">
+                                <span class="material-symbols-rounded filled mb-2">map</span>
+                                <p class="mb-0">Mapa de ubicación</p>
+                                <small>Coordenadas: {{ place.address.location.latitude }}, {{ place.address.location.longitude }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    } @else {
+        <!-- Loading state -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-muted mt-2">Cargando información del alojamiento...</p>
+        </div>
+    }
+</div>

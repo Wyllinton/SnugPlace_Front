@@ -1,0 +1,163 @@
+/* Estilos para la galería de imágenes */
+.accommodation-gallery {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.gallery-main {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.accommodation-main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.accommodation-main-image:hover {
+    transform: scale(1.02);
+}
+
+.gallery-thumbnails {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+.thumbnail {
+    width: 80px;
+    height: 60px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.thumbnail:hover {
+    border-color: #0d6efd;
+    transform: translateY(-2px);
+}
+
+.thumbnail.active {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para la información del alojamiento */
+.accommodation-info {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.accommodation-title {
+    color: #2c3e50;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.accommodation-price {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.accommodation-meta {
+    border-top: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 0;
+}
+
+.accommodation-services {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.accommodation-services h6 {
+    color: #495057;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.accommodation-actions {
+    margin-top: 1rem;
+}
+
+/* Estilos para la descripción */
+.accommodation-description {
+    line-height: 1.6;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+/* Estilos para la ubicación */
+.location-map-placeholder {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #dee2e6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .accommodation-main-image {
+        height: 300px;
+    }
+    
+    .thumbnail {
+        width: 60px;
+        height: 45px;
+    }
+    
+    .accommodation-info {
+        position: static;
+        margin-top: 1rem;
+    }
+}
+
+/* Animaciones suaves */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Mejoras visuales para los botones */
+.btn {
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Estilos para los íconos de servicios */
+.material-symbols-rounded {
+    font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* Ajustes para textos */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-success {
+    color: #198754 !important;
+}
+
+.text-primary {
+    color: #0d6efd !important;
+}

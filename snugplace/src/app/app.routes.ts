@@ -12,7 +12,8 @@ import { Bookings } from './pages/bookings/bookings';
 import { CreateBooking } from './pages/create-booking/create-booking';
 import { BookingDetail } from './pages/booking-detail/booking-detail';
 import { Profile } from './pages/profile/profile';
-import { CommentsAccommodation } from './pages/comments-accommodation/comments-accommodation';
+import { CommentsAccommodation} from './pages/comments-accommodation/comments-accommodation';
+import { MyPlaces } from './pages/my-places/my-places';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -25,9 +26,10 @@ export const routes: Routes = [
     { path: 'host/accommodations/create', component: CreateAccommodation },
     { path: 'host/accommodations/edit', component: EditAccommodation },
     { path: 'bookings', component: Bookings },
-    {path: 'bookings/create/:accommodationId', component: CreateBooking},
+    { path: 'bookings/create/:accommodationId', component: CreateBooking},
     { path: 'booking/:id', component: BookingDetail },
     { path: 'profile', component: Profile },
     { path: 'comments/:AccommodationId', component: CommentsAccommodation },
+    { path: "my-places", component: MyPlaces },
     { path: "**", pathMatch: "full", redirectTo: "" }
 ];
