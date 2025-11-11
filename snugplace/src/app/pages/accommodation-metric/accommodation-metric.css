@@ -1,0 +1,25 @@
+/* accommodation-metric.css - VERSIÓN CORREGIDA */
+.metric-card {
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 15px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.metric-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+/* Asegurar que el spinner esté alineado */
+.btn .spinner-border-sm {
+    margin-right: 0;
+}

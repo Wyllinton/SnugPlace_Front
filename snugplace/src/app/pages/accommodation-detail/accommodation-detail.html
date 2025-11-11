@@ -91,7 +91,13 @@
                         <div class="accommodation-actions">
                             <div class="d-grid gap-2">
                                 <button type="button" 
-                                        [routerLink]="'/accommodation/edit/{{ place.id }}'"
+                                        [routerLink]="['/metrics/accommodations', place.id]"
+                                        class="btn btn-success d-flex align-items-center justify-content-center gap-2">
+                                    <span class="material-symbols-rounded">analytics</span>
+                                    Métricas del Alojamiento
+                                </button>
+                                <button type="button" 
+                                        [routerLink]="['/accommodation/edit', place.id]"
                                         class="btn btn-success d-flex align-items-center justify-content-center gap-2">
                                     <span class="material-symbols-rounded">edit</span>
                                     Editar Alojamiento

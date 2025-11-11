@@ -9,6 +9,7 @@ import { AccommodationDetailUser } from './pages/accommodation-detail-user/accom
 import { HostAccommodations } from './pages/host-accommodations/host-accommodations';
 import { CreateAccommodation } from './pages/create-accommodation/create-accommodation';
 import { EditAccommodation } from './pages/edit-accommodation/edit-accommodation';
+import { AccommodationMetric } from './pages/accommodation-metric/accommodation-metric';
 import { Bookings } from './pages/bookings/bookings';
 import { CreateBooking } from './pages/create-booking/create-booking';
 import { BookingDetail } from './pages/booking-detail/booking-detail';
@@ -27,6 +28,7 @@ export const routes: Routes = [
     { path: 'host/accommodations', component: HostAccommodations },
     { path: 'host/accommodations/create', component: CreateAccommodation },
     { path: 'accommodation/edit/:id', component: EditAccommodation },
+    { path: 'metrics/accommodations/:id', component: AccommodationMetric },
     { path: 'bookings', component: Bookings },
     { path: 'bookings/create/:accommodationId', component: CreateBooking},
     { path: 'booking/:id', component: BookingDetail },
