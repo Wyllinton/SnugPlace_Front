@@ -46,7 +46,7 @@
                 <div class="col-md-8">
                     <h4 class="text-success">{{ currentMetric.title }}</h4>
                     <p class="text-muted mb-0">
-                        Período: {{ currentMetric.startDate | date:'dd/MM/yyyy' }} - {{ currentMetric.endDate | date:'dd/MM/yyyy' }}
+                        Período: {{ formatDateForDisplay(currentMetric.startDate) }} - {{ formatDateForDisplay(currentMetric.endDate) }}
                     </p>
                 </div>
                 <div class="col-md-4 text-end">

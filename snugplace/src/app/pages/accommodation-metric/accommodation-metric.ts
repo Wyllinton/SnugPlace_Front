@@ -1,8 +1,27 @@
-// accommodation-metric.component.ts - VERSIÓN CORREGIDA
+// accommodation-metric.component.ts - VERSIÓN CON DTOs CORRECTOS
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
+// Interfaces basadas en los DTOs del backend
+export interface MetricAccommodationDTO {
+  idAccommodation: number;
+  title: string;
+  startDate: string;  // LocalDate se convierte a string en formato ISO
+  endDate: string;    // LocalDate se convierte a string en formato ISO
+  countBookings: number;
+  confirmedBookings: number;
+  cancelledBookings: number;
+  completedBookings: number;
+  averageRating: number;
+  totalIncomes: number;
+}
+
+export interface MetricRequestDTO {
+  firstDate: string;  // LocalDate en formato ISO
+  lastDate: string;   // LocalDate en formato ISO
+}
 
 @Component({
   selector: 'app-accommodation-metric',
@@ -14,7 +33,7 @@ import { CommonModule } from '@angular/common';
 export class AccommodationMetric implements OnInit {
 
   metricForm: FormGroup;
-  currentMetric: any = null;
+  currentMetric: MetricAccommodationDTO | null = null;
   accommodationId!: number;
   isLoading: boolean = false;
   hasSearched: boolean = false;
@@ -35,14 +54,14 @@ export class AccommodationMetric implements OnInit {
       this.accommodationId = +params['id'];
       console.log('ID del alojamiento:', this.accommodationId);
       
-      // Fechas por defecto (últimos 30 días)
+      // Fechas por defecto (últimos 30 días) - convertidas a formato ISO
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
 
       this.metricForm.patchValue({
-        startDate: this.formatDate(startDate),
-        endDate: this.formatDate(endDate)
+        startDate: this.formatDateForInput(startDate),
+        endDate: this.formatDateForInput(endDate)
       });
 
       // Cargar métricas automáticamente al inicio
@@ -64,11 +83,15 @@ export class AccommodationMetric implements OnInit {
   }
 
   private loadMockData(): void {
-    const startDate = new Date(this.metricForm.value.startDate);
-    const endDate = new Date(this.metricForm.value.endDate);
+    const startDate = this.metricForm.value.startDate;
+    const endDate = this.metricForm.value.endDate;
+    
+    // Convertir a objetos Date para cálculos
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
     
     // Calcular días del período para hacer datos más realistas
-    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysDiff = Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
     
     // Datos que varían según el período
     const baseBookings = Math.max(5, Math.floor(daysDiff / 10)); // Mínimo 5 reservas
@@ -77,8 +100,8 @@ export class AccommodationMetric implements OnInit {
     this.currentMetric = {
       idAccommodation: this.accommodationId,
       title: this.getAccommodationTitle(this.accommodationId),
-      startDate: startDate,
-      endDate: endDate,
+      startDate: startDate, // Mantener como string en formato ISO
+      endDate: endDate,     // Mantener como string en formato ISO
       countBookings: Math.floor(baseBookings * randomFactor),
       confirmedBookings: Math.floor(baseBookings * randomFactor * 0.8), // 80% confirmadas
       cancelledBookings: Math.floor(baseBookings * randomFactor * 0.1), // 10% canceladas
@@ -88,6 +111,35 @@ export class AccommodationMetric implements OnInit {
     };
 
     console.log('📊 Datos mock cargados:', this.currentMetric);
+  }
+
+  // Método para preparar datos para enviar al backend
+  private prepareRequestData(): MetricRequestDTO {
+    return {
+      firstDate: this.convertToLocalDateString(this.metricForm.value.startDate),
+      lastDate: this.convertToLocalDateString(this.metricForm.value.endDate)
+    };
+  }
+
+  // Convertir fecha a formato LocalDate (YYYY-MM-DD)
+  private convertToLocalDateString(dateString: string): string {
+    return dateString; // Ya está en formato YYYY-MM-DD desde el input date
+  }
+
+  // Formatear fecha para input date (YYYY-MM-DD)
+  private formatDateForInput(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  // Formatear fecha para mostrar (DD/MM/YYYY)
+  formatDateForDisplay(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   }
 
   private getAccommodationTitle(id: number): string {
@@ -123,9 +175,5 @@ export class AccommodationMetric implements OnInit {
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(amount);
-  }
-
-  private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
   }
 }
