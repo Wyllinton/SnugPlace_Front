@@ -1,4 +1,4 @@
-export interface ResponseDTO {
+export interface ResponseDTO<T> {
     error: boolean,
-    content: any
+    content: T
 }
