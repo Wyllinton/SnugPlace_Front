@@ -152,4 +152,10 @@ export class Profile implements OnInit {
     const control = this.profileForm.get(field);
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
+  navigateToChangePassword() {
+    const userId = this.tokenService.getUserId(); // O como obtengas el ID del usuario
+    if (userId) {
+      this.router.navigate([`/${userId}/profile/change-password`]);
+    }
+  }
 }

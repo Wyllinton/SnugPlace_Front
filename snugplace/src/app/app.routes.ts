@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
+import { ChangeUserPassword } from './pages/change-user-password/change-user-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { AccommodationDetail } from './pages/accommodation-detail/accommodation-detail';
 import { AccommodationDetailUser } from './pages/accommodation-detail-user/accommodation-detail-user';
@@ -22,6 +23,7 @@ export const routes: Routes = [
     { path: 'login', component: Login },
     { path: 'register', component: Register },
     { path: 'forgot-password', component: ForgotPassword },
+    { path: ':id/profile/change-password', component: ChangeUserPassword },
     { path: 'reset-password', component: ResetPassword },
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'accommodation-detail/:id', component: AccommodationDetailUser },

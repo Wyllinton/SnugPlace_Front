@@ -8,13 +8,16 @@
     <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="profile-form">
       <!-- Foto de perfil -->
       <div class="photo-section">
-        <div class="photo-preview">
-          <img id="photoPreview" src="" alt="Foto de perfil" style="display: none;">
-          <div class="photo-placeholder" id="photoPlaceholder">
+        <div class="photo-preview" (click)="openFileSelector()">
+          <img id="photoPreview" [src]="profileForm.get('photoURL')?.value" alt="Foto de perfil" 
+               [style.display]="profileForm.get('photoURL')?.value ? 'block' : 'none'">
+          <div class="photo-placeholder" id="photoPlaceholder"
+               [style.display]="profileForm.get('photoURL')?.value ? 'none' : 'flex'">
             <span class="material-symbols-rounded">person</span>
           </div>
         </div>
-        <input #photoInput type="file" id="photoInput" accept="image/*" style="display: none;" (change)="onPhotoSelected($event)">
+        <input #photoInput type="file" id="photoInput" accept="image/*" style="display: none;" 
+               (change)="onPhotoSelected($event)">
         <button type="button" class="photo-btn" (click)="openFileSelector()">
           Cambiar foto
         </button>
@@ -58,6 +61,11 @@
         </button>
         <button type="submit" class="btn-primary" [disabled]="!profileForm.valid || isLoading">
           {{ isLoading ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+      <div class="additional-actions">
+        <button type="button" class="btn-change-password" (click)="navigateToChangePassword()">
+          Cambiar contraseña
         </button>
       </div>
     </form>
