@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="create-accommodation.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
 </head>
 <body>
   <div class="form-container">
@@ -86,15 +87,19 @@
         <!-- Ubicación -->
         <div class="form-group">
           <label for="location">Ubicación (Latitud, Longitud) *</label>
+  
+          <div id="map" style="height: 350px; border-radius: 8px; margin-bottom: 10px;"></div>
+  
           <input 
             type="text" 
             id="location" 
             name="location"
             placeholder="Ej: 6.2442, -75.5812"
             required
+            readonly
           >
           <span class="error-message" id="locationError"></span>
-          <small class="helper-text">Formato: Latitud, Longitud (puedes obtenerlas en Google Maps)</small>
+          <small class="helper-text">Haz clic en el mapa para establecer la ubicación</small>
         </div>
 
         <!-- Precio y Huéspedes -->
@@ -225,7 +230,95 @@
     </div>
   </div>
 
+  <!-- Mapbox GL JS -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
   <script>
+    // Variables globales para el mapa y marcador
+    let map = null;
+    let marker = null;
+
+    // Inicializar el mapa cuando el DOM esté completamente cargado
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeMap();
+    });
+
+    function initializeMap() {
+      // Configurar el token de acceso
+      mapboxgl.accessToken = 'pk.eyJ1Ijoid3lsbGludG9uMDQiLCJhIjoiY2xxdGJ0bG5vMDV0eDJqbzM0b2NqY2J0YSJ9.3yocP5vz3rVh_Xp_5q0x7A';
+
+      // Crear mapa
+      map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-75.5812, 6.2442], // [longitud, latitud] - Medellín por defecto
+        zoom: 10
+      });
+
+      // Agregar controles de navegación
+      map.addControl(new mapboxgl.NavigationControl());
+
+      // Esperar a que el mapa se cargue completamente
+      map.on('load', function() {
+        console.log('Mapa cargado correctamente');
+        
+        // Redimensionar el mapa para asegurar que se muestre correctamente
+        setTimeout(function() {
+          map.resize();
+        }, 100);
+      });
+
+      // Evento click para colocar/actualizar marcador
+      map.on('click', function(e) {
+        const lng = e.lngLat.lng;
+        const lat = e.lngLat.lat;
+        
+        // Actualizar o crear marcador
+        updateMarker(lng, lat);
+        
+        // Actualizar campo de texto
+        updateLocationInput(lat, lng);
+      });
+
+      // Evento para manejar errores del mapa
+      map.on('error', function(e) {
+        console.error('Error en el mapa:', e.error);
+      });
+    }
+
+    function updateMarker(lng, lat) {
+      // Si ya existe un marcador, moverlo
+      if (marker) {
+        marker.setLngLat([lng, lat]);
+      } else {
+        // Crear nuevo marcador
+        marker = new mapboxgl.Marker({
+          draggable: true,
+          color: '#FF6B6B'
+        })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+        // Evento cuando el marcador se arrastra
+        marker.on('dragend', function() {
+          const position = marker.getLngLat();
+          updateLocationInput(position.lat, position.lng);
+        });
+      }
+    }
+
+    function updateLocationInput(lat, lng) {
+      // Formatear coordenadas con 6 decimales
+      const formattedLat = lat.toFixed(6);
+      const formattedLng = lng.toFixed(6);
+      
+      // Actualizar campo de texto
+      document.getElementById('location').value = `${formattedLat}, ${formattedLng}`;
+      
+      // Limpiar error si existe
+      document.getElementById('locationError').textContent = '';
+    }
+
     // Contador de caracteres para descripción
     document.getElementById('description').addEventListener('input', function() {
       const charCount = this.value.length;
@@ -288,7 +381,7 @@
       }
       
       if (!location.value.trim()) {
-        showError('locationError', 'La ubicación es obligatoria');
+        showError('locationError', 'La ubicación es obligatoria. Haz clic en el mapa para seleccionarla.');
         isValid = false;
       }
       
@@ -305,13 +398,33 @@
       if (isValid) {
         // Aquí iría el envío al backend
         const formData = new FormData(this);
-        console.log('Formulario válido, enviando datos...');
         
-        // Simular envío
+        // Obtener servicios seleccionados
+        const selectedServices = Array.from(document.querySelectorAll('input[name="services"]:checked'))
+          .map(checkbox => checkbox.value);
+        
+        console.log('Datos del formulario:', {
+          title: title.value,
+          description: description.value,
+          city: city.value,
+          address: address.value,
+          location: location.value,
+          pricePerNight: priceDay.value,
+          maxGuests: guestsCount.value,
+          services: selectedServices
+        });
+        
+        // Simular envío exitoso
         alert('¡Alojamiento creado exitosamente!');
         this.reset();
         document.getElementById('filesSelected').style.display = 'none';
         document.getElementById('charCount').textContent = '0';
+        
+        // Limpiar marcador del mapa
+        if (marker) {
+          marker.remove();
+          marker = null;
+        }
       }
     });
 
@@ -353,6 +466,43 @@
         field.classList.remove('invalid');
       }
     }
+  </script>
+  <script>
+  // Script de diagnóstico
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== DIAGNÓSTICO MAPBOX ===');
+    
+    // Verificar si Mapbox GL JS se cargó correctamente
+    if (typeof mapboxgl === 'undefined') {
+        console.error('❌ Mapbox GL JS no se cargó correctamente');
+        alert('Error: Mapbox GL JS no se cargó. Verifica la conexión a internet.');
+    } else {
+        console.log('✅ Mapbox GL JS cargado correctamente');
+        console.log('Versión:', mapboxgl.version);
+    }
+    
+    // Verificar el contenedor del mapa
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        console.error('❌ No se encontró el contenedor con id "map"');
+    } else {
+        console.log('✅ Contenedor del mapa encontrado');
+        console.log('Dimensiones:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
+        
+        // Verificar estilos del contenedor
+        const styles = window.getComputedStyle(mapContainer);
+        console.log('Altura calculada:', styles.height);
+        console.log('Display:', styles.display);
+        console.log('Visibility:', styles.visibility);
+    }
+    
+    // Verificar el token de acceso
+    if (!mapboxgl.accessToken) {
+        console.error('❌ Token de acceso no configurado');
+    } else {
+        console.log('✅ Token de acceso configurado');
+    }
+    });
   </script>
 </body>
 </html>
