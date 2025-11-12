@@ -1,508 +1,222 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crear Alojamiento - SnugPlace</title>
-  <link rel="stylesheet" href="create-accommodation.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-</head>
-<body>
-  <div class="form-container">
-    <div class="form-card">
-      <div class="form-header">
-        <h2>Crear Nuevo Alojamiento</h2>
-        <p>Comparte tu espacio con viajeros de todo el mundo 🌍</p>
+<div class="form-container">
+  <div class="form-card">
+    <div class="form-header">
+      <h2>Crear Nuevo Alojamiento</h2>
+      <p>Comparte tu espacio con viajeros de todo el mundo 🌍</p>
+    </div>
+
+    <form [formGroup]="createAccommodationForm" 
+          (ngSubmit)="createAccommodation()" 
+          class="accommodation-form" 
+          novalidate>
+      
+      <!-- Título -->
+      <div class="form-group">
+        <label for="title">Título *</label>
+        <input 
+          type="text" 
+          id="title" 
+          formControlName="title"
+          placeholder="Ej: Acogedor apartamento en el centro"
+          [class.invalid]="isInvalidField('title')"
+        >
+        @if (isInvalidField('title')) {
+          <span class="error-message">{{ getErrorMessage('title') }}</span>
+        }
       </div>
 
-      <form id="accommodationForm" class="accommodation-form" novalidate>
-        
-        <!-- Título -->
-        <div class="form-group">
-          <label for="title">Título *</label>
-          <input 
-            type="text" 
-            id="title" 
-            name="title"
-            placeholder="Ej: Acogedor apartamento en el centro"
-            required
-          >
-          <span class="error-message" id="titleError"></span>
-        </div>
-
-        <!-- Descripción -->
-        <div class="form-group">
-          <label for="description">Descripción *</label>
-          <textarea 
-            id="description" 
-            name="description"
-            placeholder="Describe tu alojamiento, qué hace especial, qué pueden esperar los huéspedes..."
-            rows="5"
-            required
-          ></textarea>
-          <span class="error-message" id="descriptionError"></span>
-          <div class="char-counter">
-            <span id="charCount">0</span>/1000
-          </div>
-        </div>
-
-        <!-- Ciudad y Dirección -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="city">Ciudad *</label>
-            <select id="city" name="city" required>
-              <option value="" disabled selected>Seleccione una ciudad</option>
-              <option value="Bogotá">Bogotá</option>
-              <option value="Medellín">Medellín</option>
-              <option value="Cali">Cali</option>
-              <option value="Barranquilla">Barranquilla</option>
-              <option value="Cartagena">Cartagena</option>
-              <option value="Bucaramanga">Bucaramanga</option>
-              <option value="Pereira">Pereira</option>
-              <option value="Manizales">Manizales</option>
-              <option value="Armenia">Armenia</option>
-              <option value="Santa Marta">Santa Marta</option>
-              <option value="Ibagué">Ibagué</option>
-              <option value="Neiva">Neiva</option>
-              <option value="Pasto">Pasto</option>
-            </select>
-            <span class="error-message" id="cityError"></span>
-          </div>
-
-          <div class="form-group">
-            <label for="address">Dirección *</label>
-            <input 
-              type="text" 
-              id="address" 
-              name="address"
-              placeholder="Calle, número, barrio"
-              required
-            >
-            <span class="error-message" id="addressError"></span>
-          </div>
-        </div>
-
-        <!-- Ubicación -->
-        <div class="form-group">
-          <label for="location">Ubicación (Latitud, Longitud) *</label>
-  
-          <div id="map" style="height: 350px; border-radius: 8px; margin-bottom: 10px;"></div>
-  
-          <input 
-            type="text" 
-            id="location" 
-            name="location"
-            placeholder="Ej: 6.2442, -75.5812"
-            required
-            readonly
-          >
-          <span class="error-message" id="locationError"></span>
-          <small class="helper-text">Haz clic en el mapa para establecer la ubicación</small>
-        </div>
-
-        <!-- Precio y Huéspedes -->
-        <div class="form-row">
-          <div class="form-group">
-            <label for="priceDay">Precio por noche *</label>
-            <div class="input-with-icon">
-              <span class="currency">$</span>
-              <input 
-                type="number" 
-                id="priceDay" 
-                name="priceDay"
-                placeholder="0"
-                min="1"
-                required
-              >
-            </div>
-            <span class="error-message" id="priceDayError"></span>
-          </div>
-
-          <div class="form-group">
-            <label for="guestsCount">Máximo de huéspedes *</label>
-            <div class="input-with-icon">
-              <span class="material-symbols-rounded icon">group</span>
-              <input 
-                type="number" 
-                id="guestsCount" 
-                name="guestsCount"
-                placeholder="1"
-                min="1"
-                required
-              >
-            </div>
-            <span class="error-message" id="guestsCountError"></span>
-          </div>
-        </div>
-
-        <!-- Servicios adicionales -->
-        <div class="form-group">
-          <label class="section-label">Servicios adicionales</label>
-          <div class="services-grid">
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="WiFi">
-              <span class="checkmark"></span>
-              <span class="service-name">WiFi</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Desayuno incluido">
-              <span class="checkmark"></span>
-              <span class="service-name">Desayuno incluido</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Piscina">
-              <span class="checkmark"></span>
-              <span class="service-name">Piscina</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Aire acondicionado">
-              <span class="checkmark"></span>
-              <span class="service-name">Aire acondicionado</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Estacionamiento gratuito">
-              <span class="checkmark"></span>
-              <span class="service-name">Estacionamiento gratuito</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Gimnasio">
-              <span class="checkmark"></span>
-              <span class="service-name">Gimnasio</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Admite mascotas">
-              <span class="checkmark"></span>
-              <span class="service-name">Admite mascotas</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="Servicio de limpieza">
-              <span class="checkmark"></span>
-              <span class="service-name">Servicio de limpieza</span>
-            </label>
-            <label class="service-checkbox">
-              <input type="checkbox" name="services" value="TV por cable">
-              <span class="checkmark"></span>
-              <span class="service-name">TV por cable</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Imágenes -->
-        <div class="form-group">
-          <label class="section-label">Imágenes del alojamiento</label>
-          <div class="file-upload-box" onclick="document.getElementById('images').click()">
-            <div class="upload-icon">
-              <span class="material-symbols-rounded">cloud_upload</span>
-            </div>
-            <div class="upload-text">
-              <p>Haz clic para seleccionar imágenes</p>
-              <small>Formatos: JPG, PNG, WEBP • Máx. 5MB por imagen</small>
-            </div>
-          </div>
-          <input 
-            type="file" 
-            id="images"
-            name="images"
-            multiple 
-            accept="image/*"
-            class="file-input"
-            onchange="updateFileCount(this)"
-          >
-          <div class="files-selected" id="filesSelected" style="display: none;">
-            <span class="material-symbols-rounded">check_circle</span>
-            <span id="fileCount">0</span> archivo(s) seleccionado(s)
-          </div>
-        </div>
-
-        <!-- Botón de envío -->
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" onclick="cancelCreate()">
-            Cancelar
-          </button>
-          <button type="submit" class="submit-btn">
-            <span class="btn-icon">🏠</span>
-            Crear alojamiento
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Mapbox GL JS -->
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-
-  <script>
-    // Variables globales para el mapa y marcador
-    let map = null;
-    let marker = null;
-
-    // Inicializar el mapa cuando el DOM esté completamente cargado
-    document.addEventListener('DOMContentLoaded', function() {
-      initializeMap();
-    });
-
-    function initializeMap() {
-      // Configurar el token de acceso
-      mapboxgl.accessToken = 'pk.eyJ1Ijoid3lsbGludG9uMDQiLCJhIjoiY2xxdGJ0bG5vMDV0eDJqbzM0b2NqY2J0YSJ9.3yocP5vz3rVh_Xp_5q0x7A';
-
-      // Crear mapa
-      map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [-75.5812, 6.2442], // [longitud, latitud] - Medellín por defecto
-        zoom: 10
-      });
-
-      // Agregar controles de navegación
-      map.addControl(new mapboxgl.NavigationControl());
-
-      // Esperar a que el mapa se cargue completamente
-      map.on('load', function() {
-        console.log('Mapa cargado correctamente');
-        
-        // Redimensionar el mapa para asegurar que se muestre correctamente
-        setTimeout(function() {
-          map.resize();
-        }, 100);
-      });
-
-      // Evento click para colocar/actualizar marcador
-      map.on('click', function(e) {
-        const lng = e.lngLat.lng;
-        const lat = e.lngLat.lat;
-        
-        // Actualizar o crear marcador
-        updateMarker(lng, lat);
-        
-        // Actualizar campo de texto
-        updateLocationInput(lat, lng);
-      });
-
-      // Evento para manejar errores del mapa
-      map.on('error', function(e) {
-        console.error('Error en el mapa:', e.error);
-      });
-    }
-
-    function updateMarker(lng, lat) {
-      // Si ya existe un marcador, moverlo
-      if (marker) {
-        marker.setLngLat([lng, lat]);
-      } else {
-        // Crear nuevo marcador
-        marker = new mapboxgl.Marker({
-          draggable: true,
-          color: '#FF6B6B'
-        })
-        .setLngLat([lng, lat])
-        .addTo(map);
-
-        // Evento cuando el marcador se arrastra
-        marker.on('dragend', function() {
-          const position = marker.getLngLat();
-          updateLocationInput(position.lat, position.lng);
-        });
-      }
-    }
-
-    function updateLocationInput(lat, lng) {
-      // Formatear coordenadas con 6 decimales
-      const formattedLat = lat.toFixed(6);
-      const formattedLng = lng.toFixed(6);
-      
-      // Actualizar campo de texto
-      document.getElementById('location').value = `${formattedLat}, ${formattedLng}`;
-      
-      // Limpiar error si existe
-      document.getElementById('locationError').textContent = '';
-    }
-
-    // Contador de caracteres para descripción
-    document.getElementById('description').addEventListener('input', function() {
-      const charCount = this.value.length;
-      document.getElementById('charCount').textContent = charCount;
-    });
-
-    // Actualizar contador de archivos
-    function updateFileCount(input) {
-      const fileCount = input.files.length;
-      const filesSelected = document.getElementById('filesSelected');
-      const fileCountSpan = document.getElementById('fileCount');
-      
-      if (fileCount > 0) {
-        fileCountSpan.textContent = fileCount;
-        filesSelected.style.display = 'flex';
-      } else {
-        filesSelected.style.display = 'none';
-      }
-    }
-
-    // Validación del formulario
-    document.getElementById('accommodationForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      // Limpiar errores anteriores
-      clearErrors();
-      
-      // Validar campos
-      let isValid = true;
-      
-      const title = document.getElementById('title');
-      const description = document.getElementById('description');
-      const city = document.getElementById('city');
-      const address = document.getElementById('address');
-      const location = document.getElementById('location');
-      const priceDay = document.getElementById('priceDay');
-      const guestsCount = document.getElementById('guestsCount');
-      
-      if (!title.value.trim()) {
-        showError('titleError', 'El título es obligatorio');
-        isValid = false;
-      }
-      
-      if (!description.value.trim()) {
-        showError('descriptionError', 'La descripción es obligatoria');
-        isValid = false;
-      } else if (description.value.trim().length < 20) {
-        showError('descriptionError', 'La descripción debe tener al menos 20 caracteres');
-        isValid = false;
-      }
-      
-      if (!city.value) {
-        showError('cityError', 'La ciudad es obligatoria');
-        isValid = false;
-      }
-      
-      if (!address.value.trim()) {
-        showError('addressError', 'La dirección es obligatoria');
-        isValid = false;
-      }
-      
-      if (!location.value.trim()) {
-        showError('locationError', 'La ubicación es obligatoria. Haz clic en el mapa para seleccionarla.');
-        isValid = false;
-      }
-      
-      if (!priceDay.value || priceDay.value < 1) {
-        showError('priceDayError', 'El precio debe ser mayor a 0');
-        isValid = false;
-      }
-      
-      if (!guestsCount.value || guestsCount.value < 1) {
-        showError('guestsCountError', 'El número de huéspedes debe ser mayor a 0');
-        isValid = false;
-      }
-      
-      if (isValid) {
-        // Aquí iría el envío al backend
-        const formData = new FormData(this);
-        
-        // Obtener servicios seleccionados
-        const selectedServices = Array.from(document.querySelectorAll('input[name="services"]:checked'))
-          .map(checkbox => checkbox.value);
-        
-        console.log('Datos del formulario:', {
-          title: title.value,
-          description: description.value,
-          city: city.value,
-          address: address.value,
-          location: location.value,
-          pricePerNight: priceDay.value,
-          maxGuests: guestsCount.value,
-          services: selectedServices
-        });
-        
-        // Simular envío exitoso
-        alert('¡Alojamiento creado exitosamente!');
-        this.reset();
-        document.getElementById('filesSelected').style.display = 'none';
-        document.getElementById('charCount').textContent = '0';
-        
-        // Limpiar marcador del mapa
-        if (marker) {
-          marker.remove();
-          marker = null;
+      <!-- Descripción -->
+      <div class="form-group">
+        <label for="description">Descripción *</label>
+        <textarea 
+          id="description" 
+          formControlName="description"
+          placeholder="Describe tu alojamiento, qué hace especial, qué pueden esperar los huéspedes..."
+          rows="5"
+          [class.invalid]="isInvalidField('description')"
+        ></textarea>
+        @if (isInvalidField('description')) {
+          <span class="error-message">{{ getErrorMessage('description') }}</span>
         }
-      }
-    });
+        <div class="char-counter">
+          <span>{{ getDescriptionLength() }}</span>/1000
+        </div>
+      </div>
 
-    function showError(elementId, message) {
-      const errorElement = document.getElementById(elementId);
-      errorElement.textContent = message;
-    }
+      <!-- Ciudad y Dirección -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">Ciudad *</label>
+          <select 
+            id="city" 
+            formControlName="city"
+            [class.invalid]="isInvalidField('city')">
+            <option value="" disabled>Seleccione una ciudad</option>
+            @for (city of cities; track city) {
+              <option [value]="city">{{ city }}</option>
+            }
+          </select>
+          @if (isInvalidField('city')) {
+            <span class="error-message">{{ getErrorMessage('city') }}</span>
+          }
+        </div>
 
-    function clearErrors() {
-      const errorElements = document.querySelectorAll('.error-message');
-      errorElements.forEach(element => {
-        element.textContent = '';
-      });
-    }
+        <div class="form-group">
+          <label for="address">Dirección *</label>
+          <input 
+            type="text" 
+            id="address" 
+            formControlName="address"
+            placeholder="Calle, número, barrio"
+            [class.invalid]="isInvalidField('address')"
+          >
+          @if (isInvalidField('address')) {
+            <span class="error-message">{{ getErrorMessage('address') }}</span>
+          }
+        </div>
+      </div>
 
-    function cancelCreate() {
-      if (confirm('¿Estás seguro de que quieres cancelar? Se perderán los datos no guardados.')) {
-        window.history.back();
-      }
-    }
-
-    // Validación en tiempo real
-    const inputs = document.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-      input.addEventListener('blur', function() {
-        validateField(this);
-      });
-    });
-
-    function validateField(field) {
-      const errorId = field.id + 'Error';
-      const errorElement = document.getElementById(errorId);
-      
-      if (!field.value.trim() && field.hasAttribute('required')) {
-        showError(errorId, 'Este campo es obligatorio');
-        field.classList.add('invalid');
-      } else {
-        errorElement.textContent = '';
-        field.classList.remove('invalid');
-      }
-    }
-  </script>
-  <script>
-  // Script de diagnóstico
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DIAGNÓSTICO MAPBOX ===');
-    
-    // Verificar si Mapbox GL JS se cargó correctamente
-    if (typeof mapboxgl === 'undefined') {
-        console.error('❌ Mapbox GL JS no se cargó correctamente');
-        alert('Error: Mapbox GL JS no se cargó. Verifica la conexión a internet.');
-    } else {
-        console.log('✅ Mapbox GL JS cargado correctamente');
-        console.log('Versión:', mapboxgl.version);
-    }
-    
-    // Verificar el contenedor del mapa
-    const mapContainer = document.getElementById('map');
-    if (!mapContainer) {
-        console.error('❌ No se encontró el contenedor con id "map"');
-    } else {
-        console.log('✅ Contenedor del mapa encontrado');
-        console.log('Dimensiones:', mapContainer.offsetWidth, 'x', mapContainer.offsetHeight);
+      <!-- Ubicación con Mapa Interactivo -->
+      <div class="form-group">
+        <label for="location">Ubicación *</label>
         
-        // Verificar estilos del contenedor
-        const styles = window.getComputedStyle(mapContainer);
-        console.log('Altura calculada:', styles.height);
-        console.log('Display:', styles.display);
-        console.log('Visibility:', styles.visibility);
-    }
-    
-    // Verificar el token de acceso
-    if (!mapboxgl.accessToken) {
-        console.error('❌ Token de acceso no configurado');
-    } else {
-        console.log('✅ Token de acceso configurado');
-    }
-    });
-  </script>
-</body>
-</html>
+        <!-- Contenedor del mapa con mensaje de carga -->
+        <div class="accommodation-map" id="map">
+          <!-- Mensaje de carga - se oculta automáticamente cuando el mapa carga -->
+          <div class="map-loading">
+            <span class="material-symbols-rounded">map</span>
+            Cargando mapa...
+          </div>
+        </div>
+        
+        <!-- Display de coordenadas seleccionadas -->
+        <div class="coordinates-display" [class.has-location]="hasLocation()">
+          <div class="mb-2">
+            <strong>Coordenadas seleccionadas:</strong>
+          </div>
+          <div class="coordinates-value">
+            @if (hasLocation()) {
+              <span class="coordinate-label">Latitud:</span> 
+              <span class="coordinate-value">{{ selectedLocation!.latitude }}</span>
+              <br>
+              <span class="coordinate-label">Longitud:</span> 
+              <span class="coordinate-value">{{ selectedLocation!.longitude }}</span>
+            } @else {
+              <span class="no-location">No se ha seleccionado ubicación</span>
+            }
+          </div>
+        </div>
+        
+        @if (isInvalidField('location')) {
+          <span class="error-message">{{ getErrorMessage('location') }}</span>
+        }
+        <small class="helper-text">
+          💡 Haz clic en el mapa para colocar el marcador. Puedes arrastrarlo para ajustar la posición.
+        </small>
+      </div>
+
+      <!-- Precio y Huéspedes -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="priceDay">Precio por noche *</label>
+          <div class="input-with-icon">
+            <span class="currency">$</span>
+            <input 
+              type="number" 
+              id="priceDay" 
+              formControlName="priceDay"
+              placeholder="0"
+              min="1"
+              [class.invalid]="isInvalidField('priceDay')"
+            >
+          </div>
+          @if (isInvalidField('priceDay')) {
+            <span class="error-message">{{ getErrorMessage('priceDay') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="guestsCount">Máximo de huéspedes *</label>
+          <div class="input-with-icon">
+            <span class="material-symbols-rounded icon">group</span>
+            <input 
+              type="number" 
+              id="guestsCount" 
+              formControlName="guestsCount"
+              placeholder="1"
+              min="1"
+              [class.invalid]="isInvalidField('guestsCount')"
+            >
+          </div>
+          @if (isInvalidField('guestsCount')) {
+            <span class="error-message">{{ getErrorMessage('guestsCount') }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Servicios adicionales -->
+      <div class="form-group">
+        <label class="section-label">Servicios adicionales</label>
+        <div class="services-grid">
+          @for (service of servicesList; track service) {
+            <label class="service-checkbox">
+              <input 
+                type="checkbox" 
+                [value]="service"
+                (change)="onServiceChange($event)"
+              >
+              <span class="checkmark"></span>
+              <span class="service-name">{{ getServiceDisplayName(service) }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Imágenes -->
+      <div class="form-group">
+        <label class="section-label">Imágenes del alojamiento</label>
+        <div class="file-upload-box" (click)="fileInput.click()">
+          <div class="upload-icon">
+            <span class="material-symbols-rounded">cloud_upload</span>
+          </div>
+          <div class="upload-text">
+            <p>Haz clic para seleccionar imágenes</p>
+            <small>Formatos: JPG, PNG, WEBP • Máx. 5MB por imagen • Máx. 10 imágenes</small>
+          </div>
+        </div>
+        <input 
+          #fileInput
+          type="file" 
+          id="images"
+          multiple 
+          accept="image/*"
+          class="file-input"
+          (change)="onFileChange($event)"
+        >
+        @if (selectedFiles.length > 0) {
+          <div class="files-selected">
+            <span class="material-symbols-rounded">check_circle</span>
+            <span>{{ selectedFiles.length }} archivo(s) seleccionado(s)</span>
+          </div>
+        }
+      </div>
+
+      <!-- Botón de envío -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn-secondary" 
+          (click)="cancelCreate()">
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          class="submit-btn"
+          [disabled]="createAccommodationForm.invalid || !hasLocation()">
+          <span class="btn-icon">🏠</span>
+          Crear alojamiento
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

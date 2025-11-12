@@ -269,6 +269,26 @@
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 2px solid #f0f0f0;
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
 }
 
 .submit-btn {
@@ -285,7 +305,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.8rem;
-  width: 100%;
+  flex: 1;
   letter-spacing: 0.5px;
   font-family: inherit;
 }
@@ -334,116 +354,167 @@
 }
 
 .error-message::before {
-  content: "⚠";
+  content: "⚠ ";
   font-size: 0.8rem;
 }
 
+/* ============================================
+   ESTILOS PARA EL MAPA - VERSIÓN CORREGIDA
+   ============================================ */
+
+/* Contenedor del mapa */
+.accommodation-map {
+  width: 100%;
+  height: 450px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background: #f8f9fa; /* Fondo mientras carga */
+}
+
+.accommodation-map:hover {
+  border-color: #2e8b57;
+  box-shadow: 0 4px 12px rgba(46, 139, 87, 0.15);
+}
+
+/* Mensaje de carga del mapa - VERSIÓN MEJORADA */
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6c757d;
+  font-size: 1rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  z-index: 999; /* ⬆️ Z-index alto para estar sobre el mapa mientras carga */
+  pointer-events: none; /* No interferir con clics del mapa */
+  transition: opacity 0.3s ease-out; /* Transición suave al ocultar */
+}
+
+/* Cuando el mapa carga, este estilo se aplica automáticamente */
+.map-loading.hidden {
+  opacity: 0;
+  display: none;
+}
+
+.map-loading .material-symbols-rounded {
+  font-size: 2rem;
+  margin-right: 0.5rem;
+  animation: rotate 2s linear infinite;
+}
+
+/* Animación de rotación para el ícono */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Asegurarse de que el canvas de Mapbox esté debajo del loading */
+#map canvas {
+  position: relative;
+  z-index: 1;
+}
+
+/* Display de coordenadas */
+.coordinates-display {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-top: 1rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.coordinates-display.has-location {
+  background: linear-gradient(135deg, rgba(46, 139, 87, 0.05) 0%, rgba(60, 179, 113, 0.08) 100%);
+  border-color: rgba(46, 139, 87, 0.3);
+}
+
+.coordinates-display .mb-2 {
+  margin-bottom: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.coordinates-value {
+  font-weight: 600;
+  color: #495057;
+  line-height: 1.8;
+}
+
+.coordinate-label {
+  color: #6c757d;
+  font-weight: 500;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+.coordinate-value {
+  color: #2e8b57;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.no-location {
+  color: #6c757d;
+  font-style: italic;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Ajustes para controles de Mapbox */
+:global(.mapboxgl-ctrl-group) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 8px !important;
+  z-index: 10 !important; /* Asegurar que estén sobre el loading */
+}
+
+:global(.mapboxgl-ctrl-group button) {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+/* Canvas de Mapbox debe estar visible */
+:global(.mapboxgl-canvas-container) {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Estilo del marcador personalizado */
+:global(.mapboxgl-marker) {
+  cursor: move !important;
+  transition: transform 0.2s ease;
+  z-index: 10 !important;
+}
+
+:global(.mapboxgl-marker:hover) {
+  transform: scale(1.1);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
-  .form-container {
-    padding: 100px 1rem 1rem;
-  }
-
-  .form-card {
-    padding: 2rem 1.5rem;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .services-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-header h2 {
-    font-size: 1.6rem;
-  }
-
-  .file-upload-box {
-    padding: 2rem 1.5rem;
-  }
-
-  .upload-icon .material-symbols-rounded {
-    font-size: 2.5rem;
+  .accommodation-map {
+    height: 350px;
   }
 }
 
 @media (max-width: 480px) {
-  .form-card {
-    padding: 1.5rem 1rem;
-    border-radius: 16px;
+  .accommodation-map {
+    height: 300px;
   }
-
-  .accommodation-form {
-    gap: 1.5rem;
-  }
-
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 0.9rem 1rem;
-  }
-}
-
-/* Estilos específicos para el mapa */
-.mapboxgl-popup {
-    max-width: 200px;
-}
-
-.mapboxgl-popup-content {
-    padding: 12px;
-    border-radius: 8px;
-}
-
-.mapboxgl-popup-content h3 {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    color: #2d3748;
-}
-
-.mapboxgl-popup-content p {
-    margin: 0;
-    font-size: 12px;
-    color: #718096;
-}
-
-/* Loading states */
-.loading {
-    opacity: 0.7;
-    pointer-events: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .form-container {
-        padding: 10px;
-    }
-    
-    .form-card {
-        padding: 20px;
-    }
-    
-    .services-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    #map {
-        height: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .form-card {
-        padding: 16px;
-    }
-    
-    #map {
-        height: 250px;
-    }
-    
-    .submit-btn, .btn-secondary {
-        padding: 12px 24px;
-    }
 }
