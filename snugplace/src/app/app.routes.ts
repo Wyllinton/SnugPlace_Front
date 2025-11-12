@@ -22,6 +22,7 @@ export const routes: Routes = [
     { path: '', component: Home },
     { path: 'login', component: Login },
     { path: 'register', component: Register },
+    { path: ':id/profile/edit', component: Profile },
     { path: 'forgot-password', component: ForgotPassword },
     { path: ':id/profile/change-password', component: ChangeUserPassword },
     { path: 'reset-password', component: ResetPassword },
@@ -34,7 +35,6 @@ export const routes: Routes = [
     { path: 'bookings', component: Bookings },
     { path: 'bookings/create/:accommodationId', component: CreateBooking},
     { path: 'booking/:id', component: BookingDetail },
-    { path: 'profile', component: Profile },
     { path: 'comments/:AccommodationId', component: CommentsAccommodation },
     { path: "my-places", component: MyPlaces },
     { path: "**", pathMatch: "full", redirectTo: "" }

@@ -1,0 +1,55 @@
+<div class="accommodation-card" [routerLink]="['/accommodation', accommodation.id]">
+  <!-- Imagen principal -->
+  <div class="card-image">
+    <img 
+      [src]="accommodation.mainImage" 
+      [alt]="accommodation.title"
+      loading="lazy"
+      onerror="this.src='assets/images/placeholder.jpg'"
+    >
+    <!-- Badge de calificación -->
+    <div class="rating-badge" *ngIf="accommodation.averageRating > 0">
+      <span class="material-symbols-rounded star-icon">star</span>
+      <span class="rating-value">{{ accommodation.averageRating | number:'1.1-1' }}</span>
+    </div>
+  </div>
+
+  <!-- Información del alojamiento -->
+  <div class="card-content">
+    <!-- Ubicación -->
+    <div class="card-location">
+      <span class="material-symbols-rounded location-icon">location_on</span>
+      <span>{{ accommodation.city }}</span>
+    </div>
+
+    <!-- Título -->
+    <h3 class="card-title">{{ accommodation.title }}</h3>
+
+    <!-- Rating y reviews -->
+    <div class="card-rating" *ngIf="accommodation.reviewsCount > 0">
+      <div class="stars">
+        <span 
+          *ngFor="let filled of getStarsArray()" 
+          class="material-symbols-rounded star"
+          [class.filled]="filled"
+        >
+          {{ filled ? 'star' : 'star_outline' }}
+        </span>
+      </div>
+      <span class="reviews-count">({{ accommodation.reviewsCount }} reseñas)</span>
+    </div>
+
+    <!-- Precio -->
+    <div class="card-price">
+      <span class="price-amount">${{ formatPrice(accommodation.pricePerNight) }}</span>
+      <span class="price-period">/ noche</span>
+    </div>
+  </div>
+
+  <!-- Hover overlay para "Ver más" -->
+  <div class="card-overlay">
+    <span class="view-details">Ver detalles</span>
+    <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
+  </div>
+</div>
+

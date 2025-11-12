@@ -3,7 +3,7 @@
   <section class="hero">
     <div class="hero-content">
       <h1>Encuentra tu <span class="highlight">lugar perfecto</span></h1>
-      <p>Descubre alojamientos únicos en los mejores destinos del mundo</p>
+      <p>Descubre alojamientos únicos en los mejores destinos de Colombia</p>
       
       <!-- Search Bar -->
       <div class="search-wrapper">
@@ -151,6 +151,92 @@
     </div>
   </section>
 
+  <!-- Accommodations Section -->
+  <section class="accommodations-section">
+    <div class="accommodations-container">
+      <!-- Header con resultados -->
+      <div class="section-header">
+        <h2>
+          @if (filters.city) {
+            Alojamientos en {{ filters.city }}
+          } @else {
+            Alojamientos disponibles
+          }
+        </h2>
+        @if (totalElements > 0) {
+          <p class="results-count">{{ totalElements }} alojamientos encontrados</p>
+        }
+      </div>
+
+      <!-- Estado de carga -->
+      @if (loading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando alojamientos...</p>
+        </div>
+      }
+
+      <!-- Mensaje de error -->
+      @if (error && !loading) {
+        <div class="error-state">
+          <span class="material-symbols-rounded error-icon">error</span>
+          <p>{{ error }}</p>
+          <button class="retry-btn" (click)="loadAccommodations()">Reintentar</button>
+        </div>
+      }
+
+      <!-- Grid de tarjetas -->
+      @if (!loading && !error && accommodations.length > 0) {
+        <div class="accommodations-grid">
+          @for (accommodation of accommodations; track accommodation.id) {
+            <app-accommodation-card [accommodation]="accommodation"></app-accommodation-card>
+          }
+        </div>
+
+        <!-- Paginación -->
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button 
+              class="page-btn prev" 
+              [disabled]="currentPage === 0"
+              (click)="changePage(currentPage - 1)"
+            >
+              <span class="material-symbols-rounded">chevron_left</span>
+            </button>
+
+            @for (page of getPageNumbers(); track page) {
+              <button 
+                class="page-btn" 
+                [class.active]="page === currentPage"
+                (click)="changePage(page)"
+              >
+                {{ page + 1 }}
+              </button>
+            }
+
+            <button 
+              class="page-btn next" 
+              [disabled]="currentPage === totalPages - 1"
+              (click)="changePage(currentPage + 1)"
+            >
+              <span class="material-symbols-rounded">chevron_right</span>
+            </button>
+          </div>
+        }
+      }
+
+      <!-- Estado sin resultados -->
+      @if (!loading && !error && accommodations.length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-rounded empty-icon">search_off</span>
+          <h3>No se encontraron alojamientos</h3>
+          <p>Intenta ajustar los filtros de búsqueda</p>
+          <button class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros</button>
+        </div>
+      }
+    </div>
+  </section>
+
   <!-- Features Section -->
   <section class="features">
     <h2>¿Por qué elegir SnugPlace?</h2>
@@ -175,37 +261,6 @@
         </div>
         <h3>Soporte 24/7</h3>
         <p>Asistencia disponible en cualquier momento que lo necesites</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Categories Section -->
-  <section class="categories">
-    <h2>Explora por categoría</h2>
-    <div class="categories-grid">
-      <div class="category-card">
-        <div class="category-info">
-          <h3>Casas de playa</h3>
-          <p>Relájate frente al mar</p>
-        </div>
-      </div>
-      <div class="category-card">
-        <div class="category-info">
-          <h3>Cabañas</h3>
-          <p>Naturaleza y tranquilidad</p>
-        </div>
-      </div>
-      <div class="category-card">
-        <div class="category-info">
-          <h3>Apartamentos</h3>
-          <p>Comodidad urbana</p>
-        </div>
-      </div>
-      <div class="category-card">
-        <div class="category-info">
-          <h3>Villas de lujo</h3>
-          <p>Experiencias premium</p>
-        </div>
       </div>
     </div>
   </section>

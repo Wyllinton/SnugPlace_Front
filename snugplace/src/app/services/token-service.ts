@@ -43,8 +43,15 @@ export class TokenService {
     return token ? this.decodePayload(token) : null;
   }
 
-  public getUserId(): string {
-    return this.getPayload()?.sub || "";
+  // Ahora getId() devuelve el ID numérico como string
+  public getId(): string {
+    return this.getPayload()?.sub || ""; // Esto ahora es el ID numérico
+  }
+
+  // getUserId() devuelve el ID como número
+  public getUserId(): number {
+    const id: string = this.getId();
+    return parseInt(id) || 0;
   }
 
   public getRole(): string {

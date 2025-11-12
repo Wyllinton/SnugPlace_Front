@@ -18,15 +18,22 @@
         </div>
         <input #photoInput type="file" id="photoInput" accept="image/*" style="display: none;" 
                (change)="onPhotoSelected($event)">
-        <button type="button" class="photo-btn" (click)="openFileSelector()">
-          Cambiar foto
-        </button>
+        <div class="photo-actions">
+          <button type="button" class="photo-btn" (click)="openFileSelector()">
+            Cambiar foto
+          </button>
+          <button type="button" class="photo-btn-clear" (click)="clearPhoto()" 
+                  *ngIf="profileForm.get('photoURL')?.value">
+            Eliminar foto
+          </button>
+        </div>
       </div>
 
       <!-- Campos del formulario -->
       <div class="form-group">
         <label for="name">Nombre completo *</label>
-        <input type="text" id="name" formControlName="name" required>
+        <input type="text" id="name" formControlName="name" required
+               [class.invalid]="isInvalidField('name')">
         <span class="error-message" *ngIf="isInvalidField('name')">
           El nombre es requerido y debe tener al menos 3 caracteres
         </span>
@@ -34,7 +41,8 @@
 
       <div class="form-group">
         <label for="phoneNumber">Número de teléfono *</label>
-        <input type="tel" id="phoneNumber" formControlName="phoneNumber" required>
+        <input type="tel" id="phoneNumber" formControlName="phoneNumber" required
+               [class.invalid]="isInvalidField('phoneNumber')">
         <span class="error-message" *ngIf="isInvalidField('phoneNumber')">
           El número de teléfono es requerido
         </span>
@@ -49,7 +57,11 @@
       <div class="form-group">
         <label for="description">Descripción</label>
         <textarea id="description" formControlName="description" rows="4" 
-                  placeholder="Cuéntanos sobre ti..."></textarea>
+                  placeholder="Cuéntanos sobre ti..."
+                  [class.invalid]="isInvalidField('description')"></textarea>
+        <div class="char-counter">
+          {{ profileForm.get('description')?.value?.length || 0 }}/500
+        </div>
         <span class="error-message" *ngIf="isInvalidField('description')">
           La descripción no puede exceder los 500 caracteres
         </span>
@@ -63,6 +75,7 @@
           {{ isLoading ? 'Guardando...' : 'Guardar cambios' }}
         </button>
       </div>
+
       <div class="additional-actions">
         <button type="button" class="btn-change-password" (click)="navigateToChangePassword()">
           Cambiar contraseña

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
+import { AuthService } from '../../services/auth-service';
 
 @Component({
   selector: 'app-forgot-password',
@@ -11,13 +12,13 @@ import Swal from 'sweetalert2';
   styleUrls: ['./forgot-password.css']
 })
 export class ForgotPassword {
-
   recoveryForm: FormGroup;
   isSubmitting: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {
     this.recoveryForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]]
@@ -31,22 +32,34 @@ export class ForgotPassword {
     }
 
     this.isSubmitting = true;
+    const email = this.recoveryForm.get('email')?.value;
 
-    // Simular envío de código (en una app real, aquí iría la llamada HTTP)
-    setTimeout(() => {
-      this.isSubmitting = false;
-      
-      Swal.fire({
-        title: '¡Código enviado!',
-        text: 'Hemos enviado un código de recuperación a tu correo electrónico.',
-        icon: 'success',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#198754'
-      }).then(() => {
-        // Redirigir a la página de reset password
-        this.router.navigate(['/reset-password']);
-      });
-    }, 2000);
+    this.authService.recoverPassword(email).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        
+        if (!response.error) {
+          Swal.fire({
+            title: '¡Código enviado!',
+            text: response.content,
+            icon: 'success',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#198754'
+          }).then(() => {
+            // Redirigir a la página de reset password con el email
+            this.router.navigate(['/reset-password'], { 
+              queryParams: { email: email } 
+            });
+          });
+        } else {
+          Swal.fire('Error', 'No se pudo enviar el código', 'error');
+        }
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        Swal.fire('Error', error.message || 'Error al enviar el código', 'error');
+      }
+    });
   }
 
   private markFormGroupTouched() {
@@ -56,7 +69,6 @@ export class ForgotPassword {
     });
   }
 
-  // Helper methods for template validation
   isFieldInvalid(fieldName: string): boolean {
     const field = this.recoveryForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));

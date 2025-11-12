@@ -5,8 +5,7 @@ import Swal from 'sweetalert2';
 import { LoginDTO } from '../../models/login-dto';
 import { AuthService } from '../../services/auth-service';
 import { TokenService } from '../../services/token-service';
-import { AuthResponseDTO } from '../../models/auth-response-dto'; // ✅ Nuevo modelo
-
+import { AuthResponseDTO } from '../../models/auth-response-dto';
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterModule],

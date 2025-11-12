@@ -1,0 +1,231 @@
+.accommodation-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.accommodation-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Imagen */
+.card-image {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.accommodation-card:hover .card-image img {
+  transform: scale(1.1);
+}
+
+/* Badge de calificación */
+.rating-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+
+.star-icon {
+  color: #ffc107;
+  font-size: 18px;
+  font-variation-settings: 'FILL' 1;
+}
+
+.rating-value {
+  font-weight: 700;
+  color: #222;
+  font-size: 0.9rem;
+}
+
+/* Contenido de la tarjeta */
+.card-content {
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  flex: 1;
+}
+
+/* Ubicación */
+.card-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.location-icon {
+  font-size: 16px;
+  color: #2e8b57;
+}
+
+/* Título */
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #222;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.6rem; /* Para mantener altura consistente */
+}
+
+/* Calificación con estrellas */
+.card-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto; /* Empuja el precio hacia abajo */
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  font-size: 16px;
+  color: #ddd;
+  font-variation-settings: 'FILL' 0;
+}
+
+.star.filled {
+  color: #ffc107;
+  font-variation-settings: 'FILL' 1;
+}
+
+.reviews-count {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Precio */
+.card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.price-amount {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2e8b57;
+}
+
+.price-period {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Overlay de hover */
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(46, 139, 87, 0.95), rgba(60, 179, 113, 0.95));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: white;
+  z-index: 5;
+}
+
+.accommodation-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.view-details {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.arrow-icon {
+  font-size: 2rem;
+  animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+/* Estado sin imagen */
+.card-image img[src*="placeholder"] {
+  object-fit: contain;
+  padding: 2rem;
+  background: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .card-image {
+    height: 200px;
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .price-amount {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-image {
+    height: 180px;
+  }
+
+  .accommodation-card:hover {
+    transform: translateY(-4px);
+  }
+}

@@ -1,8 +1,31 @@
 import { Injectable } from '@angular/core';
-import { PlaceDTO } from '../models/accommodation-dto';
 import { EditAccommodationDTO, ImageDTO } from '../models/edit-accommodation-dto';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
+
+
+// Interfaz para la respuesta paginada del backend
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number; // Página actual
+}
+
+// Interfaz para los filtros de búsqueda
+export interface SearchFilters {
+  city?: string | null;
+  checkIn?: string | null;
+  checkOut?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  guestsCount?: number | null;
+  services?: string[] | null;
+  page?: number;
+  size?: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -97,6 +120,63 @@ export class PlacesService {
         });
       }
     });
+  }
+
+    /**
+   * Obtiene todos los alojamientos con paginación y filtros
+   */
+  searchAccommodations(filters: SearchFilters): Observable<PageResponse<PlaceCardDTO>> {
+    let params = new HttpParams();
+
+    // Agregar parámetros solo si tienen valor
+    if (filters.city) {
+      params = params.set('city', filters.city);
+    }
+    if (filters.checkIn) {
+      params = params.set('checkIn', filters.checkIn);
+    }
+    if (filters.checkOut) {
+      params = params.set('checkOut', filters.checkOut);
+    }
+    if (filters.minPrice !== null && filters.minPrice !== undefined) {
+      params = params.set('minPrice', filters.minPrice.toString());
+    }
+    if (filters.maxPrice !== null && filters.maxPrice !== undefined) {
+      params = params.set('maxPrice', filters.maxPrice.toString());
+    }
+    if (filters.guestsCount !== null && filters.guestsCount !== undefined) {
+      params = params.set('guestsCount', filters.guestsCount.toString());
+    }
+    if (filters.services && filters.services.length > 0) {
+      // Enviar servicios como parámetros múltiples
+      filters.services.forEach(service => {
+        params = params.append('services', service);
+      });
+    }
+    
+    // Paginación
+    params = params.set('page', (filters.page || 0).toString());
+    params = params.set('size', (filters.size || 10).toString());
+
+    return this.http.get<PageResponse<PlaceCardDTO>>(`${this.apiUrl}/search`, { params });
+  }
+
+  /**
+   * Obtiene un alojamiento por ID
+   */
+  getAccommodationById(id: number): Observable<PlaceDTO> {
+    return this.http.get<PlaceDTO>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Obtiene alojamientos destacados (para mostrar en el home sin filtros)
+   */
+  getFeaturedAccommodations(page: number = 0, size: number = 12): Observable<PageResponse<PlaceCardDTO>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<PageResponse<PlaceCardDTO>>(`${this.apiUrl}/featured`, { params });
   }
 
   // NUEVO MÉTODO: Obtener servicios disponibles

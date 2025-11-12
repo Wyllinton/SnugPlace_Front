@@ -20,3 +20,13 @@ export interface LocationDTO{
     latitude: number;
     longitude: number;
 }
+// DTO simplificado para el listado en el home
+export interface PlaceCardDTO {
+  id: number;
+  title: string;
+  city: string;
+  pricePerNight: number;
+  mainImage: string; // Primera imagen de Cloudinary
+  averageRating: number;
+  reviewsCount: number;
+}
