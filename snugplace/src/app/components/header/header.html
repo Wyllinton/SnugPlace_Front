@@ -9,15 +9,48 @@
     </a>
 
     <!-- Navegación Desktop -->
-    <ul class="nav-links desktop-nav">
-      <li><a routerLink="/my-places" class="nav-link-snug">Gestión alojamientos</a></li>
-      <li><a routerLink="/bookings" class="nav-link-snug">Mis reservas</a></li>
-    </ul>
+    <nav class="desktop-nav">
+      <ul class="nav-links">
+        <li><a routerLink="/my-places" class="nav-link-snug">Gestión alojamientos</a></li>
+        <li><a routerLink="/bookings" class="nav-link-snug">Mis reservas</a></li>
+      </ul>
+    </nav>
 
-    <!-- Botones de acción -->
-    <div class="nav-actions">
+    <!-- Botones de acción Desktop -->
+    <div class="nav-actions" *ngIf="!isLoggedIn()">
       <button routerLink="/login" class="btn-outline-snug">Login</button>
       <button routerLink="/register" class="btn-primary-snug">Crear cuenta</button>
+    </div>
+
+    <!-- Menú de perfil Desktop (usuario logeado) -->
+    <div class="nav-actions" *ngIf="isLoggedIn()">
+      <div class="profile-menu-container">
+        <button class="profile-btn" (click)="toggleProfileMenu()">
+          <span class="material-symbols-rounded">account_circle</span>
+          <span class="profile-name">{{ currentUser?.name || 'Mi Perfil' }}</span>
+          <span class="material-symbols-rounded">expand_more</span>
+        </button>
+        
+        <!-- Menú desplegable del perfil -->
+        <div class="profile-dropdown" [class.active]="profileMenuOpen">
+          <div class="profile-dropdown-header">
+            <span class="material-symbols-rounded">account_circle</span>
+            <div class="profile-info">
+              <strong>{{ currentUser?.name || 'Usuario' }}</strong>
+              <span>{{ currentUser?.email || 'user@example.com' }}</span>
+            </div>
+          </div>
+          <div class="profile-dropdown-divider"></div>
+          <button class="dropdown-item" (click)="editProfile()">
+            <span class="material-symbols-rounded">edit</span>
+            Editar Perfil
+          </button>
+          <button class="dropdown-item" (click)="logout()">
+            <span class="material-symbols-rounded">logout</span>
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Menú móvil (hamburguesa) -->
@@ -29,11 +62,42 @@
 
   <!-- Menú móvil desplegable -->
   <div class="mobile-menu" [class.active]="menuOpen">
-    <ul class="mobile-nav-links">
-      <li><a routerLink="/my-places" (click)="closeMenu()">Gestión Alojamientos</a></li>
-      <li><a routerLink="/bookings" (click)="closeMenu()">Mis reservas</a></li>
-      <li><a routerLink="/login" (click)="closeMenu()">Login</a></li>
-      <li><a routerLink="/register" (click)="closeMenu()">Crear cuenta</a></li>
-    </ul>
+    <nav class="mobile-nav">
+      <ul class="mobile-nav-links">
+        <li><a routerLink="/my-places" (click)="closeMenu()" class="mobile-nav-link">Gestión Alojamientos</a></li>
+        <li><a routerLink="/bookings" (click)="closeMenu()" class="mobile-nav-link">Mis reservas</a></li>
+        
+        <!-- Separador -->
+        <li class="mobile-nav-divider"></li>
+        
+        <!-- Opciones móviles para usuarios no autenticados -->
+        <li *ngIf="!isLoggedIn()">
+          <a routerLink="/login" (click)="closeMenu()" class="mobile-nav-link">Login</a>
+        </li>
+        <li *ngIf="!isLoggedIn()">
+          <a routerLink="/register" (click)="closeMenu()" class="mobile-nav-link btn-mobile-primary">Crear cuenta</a>
+        </li>
+        
+        <!-- Opciones móviles para usuarios autenticados -->
+        <li *ngIf="isLoggedIn()">
+          <a (click)="editProfile(); closeMenu()" class="mobile-nav-link">
+            <span class="material-symbols-rounded">edit</span>
+            Editar Perfil
+          </a>
+        </li>
+        <li *ngIf="isLoggedIn()">
+          <a (click)="logout(); closeMenu()" class="mobile-nav-link">
+            <span class="material-symbols-rounded">logout</span>
+            Cerrar Sesión
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Overlay para cerrar menús -->
+  <div class="overlay" 
+       [class.active]="menuOpen || profileMenuOpen" 
+       (click)="closeMenu(); closeProfileMenu()">
   </div>
 </header>

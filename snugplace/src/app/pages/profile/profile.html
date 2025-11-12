@@ -1,65 +1,65 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Editar Perfil - SnugPlace</title>
-  <link rel="stylesheet" href="profile.css">
-</head>
-<body>
-  <div class="profile-edit-container">
-    <div class="profile-edit-card">
-      <div class="profile-header">
-        <h2>Editar Perfil</h2>
-        <p>Actualiza tu información personal</p>
+<div class="profile-edit-container">
+  <div class="profile-edit-card" [class.loading]="isLoading">
+    <div class="profile-header">
+      <h2>Editar Perfil</h2>
+      <p>Actualiza tu información personal</p>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="profile-form">
+      <!-- Foto de perfil -->
+      <div class="photo-section">
+        <div class="photo-preview">
+          <img id="photoPreview" src="" alt="Foto de perfil" style="display: none;">
+          <div class="photo-placeholder" id="photoPlaceholder">
+            <span class="material-symbols-rounded">person</span>
+          </div>
+        </div>
+        <input #photoInput type="file" id="photoInput" accept="image/*" style="display: none;" (change)="onPhotoSelected($event)">
+        <button type="button" class="photo-btn" (click)="openFileSelector()">
+          Cambiar foto
+        </button>
       </div>
 
-      <form id="profileForm" class="profile-form">
-        <!-- Foto de perfil -->
-        <div class="photo-section">
-          <div class="photo-preview">
-            <img id="photoPreview" src="" alt="Foto de perfil">
-            <div class="photo-placeholder" id="photoPlaceholder">
-              <span class="material-symbols-rounded">person</span>
-            </div>
-          </div>
-          <input type="file" id="photoInput" accept="image/*" style="display: none;">
-          <button type="button" class="photo-btn" onclick="document.getElementById('photoInput').click()">
-            Cambiar foto
-          </button>
-        </div>
+      <!-- Campos del formulario -->
+      <div class="form-group">
+        <label for="name">Nombre completo *</label>
+        <input type="text" id="name" formControlName="name" required>
+        <span class="error-message" *ngIf="isInvalidField('name')">
+          El nombre es requerido y debe tener al menos 3 caracteres
+        </span>
+      </div>
 
-        <!-- Campos del formulario -->
-        <div class="form-group">
-          <label for="name">Nombre completo *</label>
-          <input type="text" id="name" name="name" required>
-          <span class="error-message" id="nameError"></span>
-        </div>
+      <div class="form-group">
+        <label for="phoneNumber">Número de teléfono *</label>
+        <input type="tel" id="phoneNumber" formControlName="phoneNumber" required>
+        <span class="error-message" *ngIf="isInvalidField('phoneNumber')">
+          El número de teléfono es requerido
+        </span>
+      </div>
 
-        <div class="form-group">
-          <label for="phoneNumber">Número de teléfono *</label>
-          <input type="tel" id="phoneNumber" name="phoneNumber" required>
-          <span class="error-message" id="phoneError"></span>
-        </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" readonly>
+        <small>El email no se puede modificar</small>
+      </div>
 
-        <div class="form-group">
-          <label for="description">Descripción *</label>
-          <textarea id="description" name="description" rows="4" placeholder="Cuéntanos sobre ti..." required></textarea>
-          <span class="error-message" id="descriptionError"></span>
-        </div>
+      <div class="form-group">
+        <label for="description">Descripción</label>
+        <textarea id="description" formControlName="description" rows="4" 
+                  placeholder="Cuéntanos sobre ti..."></textarea>
+        <span class="error-message" *ngIf="isInvalidField('description')">
+          La descripción no puede exceder los 500 caracteres
+        </span>
+      </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn-secondary" onclick="cancelEdit()">
-            Cancelar
-          </button>
-          <button type="submit" class="btn-primary">
-            Guardar cambios
-          </button>
-        </div>
-      </form>
-    </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancelEdit()" [disabled]="isLoading">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="!profileForm.valid || isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
   </div>
-
-  <script src="js/profile-edit.ts"></script>
-</body>
-</html>
+</div>
