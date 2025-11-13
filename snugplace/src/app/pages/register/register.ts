@@ -89,12 +89,22 @@ export class Register {
 
       this.isUploadingImage = true;
 
-      this.imageService.uploadProfileImage(this.selectedProfileImage)
+      this.imageService.uploadImage(this.selectedProfileImage)
         .pipe(finalize(() => this.isUploadingImage = false))
         .subscribe({
           next: (response) => {
             console.log('Imagen subida exitosamente:', response);
-            resolve(response.secure_url);
+            const content = (response as any).content;
+            if (typeof content === 'string') {
+              resolve(content);
+            } else if (content && typeof content.url === 'string') {
+              resolve(content.url);
+            } else if (content && typeof content.secure_url === 'string') {
+              resolve(content.secure_url);
+            } else {
+              // Fallback: stringify content to return a string (avoids type error)
+              resolve(JSON.stringify(content));
+            }
           },
           error: (error) => {
             console.error('Error al subir imagen:', error);

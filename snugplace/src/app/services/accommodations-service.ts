@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EditAccommodationDTO, ImageDTO } from '../models/edit-accommodation-dto';
+import { EditAccommodationDTO } from '../models/edit-accommodation-dto';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
@@ -12,6 +12,30 @@ export interface PageResponse<T> {
   totalElements: number;
   size: number;
   number: number; // Página actual
+}
+
+export interface CreateAccommodationDTO {
+  title: string;
+  description: string;
+  city: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  priceDay: number;
+  guestsCount: number;
+  services: string[];
+  images: ImageDTO[];
+}
+
+export interface ImageDTO {
+  url: string;
+  cloudinaryId: string;
+  isMainImage: boolean;
+}
+
+export interface AccommodationResponse {
+  error: boolean;
+  content: string;
 }
 
 // Interfaz para los filtros de búsqueda

@@ -17,25 +17,27 @@ import { BookingDetail } from './pages/booking-detail/booking-detail';
 import { Profile } from './pages/profile/profile';
 import { CommentsAccommodation} from './pages/comments-accommodation/comments-accommodation';
 import { MyPlaces } from './pages/my-places/my-places';
+import { loginGuard } from './guards/login-service';
+import { roleGuard } from './guards/role-service';
 
 export const routes: Routes = [
     { path: '', component: Home },
-    { path: 'login', component: Login },
-    { path: 'register', component: Register },
+    { path: 'login', component: Login, canActivate: [loginGuard] },
+    { path: 'register', component: Register, canActivate: [loginGuard] },
     { path: ':id/profile/edit', component: Profile },
     { path: 'forgot-password', component: ForgotPassword },
     { path: ':id/profile/change-password', component: ChangeUserPassword },
     { path: 'reset-password', component: ResetPassword },
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'accommodation-detail/:id', component: AccommodationDetailUser },
-    { path: 'host/accommodations', component: HostAccommodations },
-    { path: 'create', component: CreateAccommodation },
-    { path: 'accommodation/edit/:id', component: EditAccommodation },
-    { path: 'metrics/accommodations/:id', component: AccommodationMetric },
+    { path: 'host/accommodations', component: HostAccommodations, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
+    { path: 'create', component: CreateAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
+    { path: 'accommodation/edit/:id', component: EditAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' }},
+    { path: 'metrics/accommodations/:id', component: AccommodationMetric, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: 'bookings', component: Bookings },
     { path: 'bookings/create/:accommodationId', component: CreateBooking},
     { path: 'booking/:id', component: BookingDetail },
     { path: 'comments/:AccommodationId', component: CommentsAccommodation },
-    { path: "my-places", component: MyPlaces },
+    { path: "my-places", component: MyPlaces, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: "**", pathMatch: "full", redirectTo: "" }
 ];

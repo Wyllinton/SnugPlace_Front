@@ -6,6 +6,8 @@ import { catchError, map } from 'rxjs/operators';
 import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
 import { ResponseDTO } from '../models/response-dto';
 import { ResponseListDTO } from '../models/response-list-dto';
+import { AuthService } from './auth-service';
+import { AccommodationResponse, CreateAccommodationDTO } from './accommodations-service';
 
 // Interfaz para los filtros de búsqueda
 export interface SearchFilters {
@@ -23,7 +25,7 @@ export interface SearchFilters {
 @Injectable({
   providedIn: 'root'
 })
-export class PlacesService {
+export class AccommodationService {
   
   // URL del backend
   private apiUrl = 'http://localhost:8080/accommodations';
@@ -31,9 +33,17 @@ export class PlacesService {
   // Array local para compatibilidad con componentes existentes
   private localPlaces: PlaceDTO[] = [];
 
-  constructor(private http: HttpClient){}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
-  // ========== MÉTODOS LOCALES (para compatibilidad) ==========
+  /**
+   * Obtiene los headers con autenticación JWT
+   */
+  private getAuthHeaders(): HttpHeaders {
+    return this.authService.getAuthHeaders();
+  }
 
   /**
    * Obtener todos los lugares (local - para compatibilidad)
@@ -80,6 +90,79 @@ export class PlacesService {
   }
 
   // ========== MÉTODOS BACKEND ==========
+
+  /**
+   * Crea un nuevo alojamiento
+   * @param accommodationData Datos del alojamiento a crear
+   * @returns Observable con la respuesta del backend
+   */
+  createAccommodation(accommodationData: CreateAccommodationDTO): Observable<AccommodationResponse> {
+    const headers = this.getAuthHeaders();
+    
+    console.log('🚀 Enviando petición POST a:', `${this.apiUrl}/create`);
+    console.log('📋 Headers:', headers);
+    console.log('📦 Body:', accommodationData);
+    
+    return this.http.post<AccommodationResponse>(
+      `${this.apiUrl}/create`,
+      accommodationData,
+      { headers }
+    );
+  }
+
+  /**
+   * Obtiene los alojamientos del host autenticado
+   * @param page Número de página (default 0)
+   * @returns Observable con la lista de alojamientos
+   */
+  getMyAccommodations(page: number = 0): Observable<any> {
+    const headers = this.getAuthHeaders();
+    
+    return this.http.get(
+      `${this.apiUrl}/my-accomodations?page=${page}`,
+      { headers }
+    );
+  }
+
+  /**
+   * Verifica si un alojamiento está disponible en las fechas especificadas
+   * @param id ID del alojamiento
+   * @param checkIn Fecha de check-in (formato: yyyy-MM-dd)
+   * @param checkOut Fecha de check-out (formato: yyyy-MM-dd)
+   * @returns Observable con la respuesta de disponibilidad
+   */
+  checkAvailability(id: number, checkIn: string, checkOut: string): Observable<any> {
+    return this.http.get(
+      `${this.apiUrl}/${id}/availability?checkIn=${checkIn}&checkOut=${checkOut}`
+    );
+  }
+
+  /**
+   * Obtiene los detalles de un alojamiento
+   * @param id ID del alojamiento
+   * @returns Observable con los detalles del alojamiento
+   */
+  getAccommodationDetails(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Obtiene tarjetas de alojamientos con filtros
+   * @param filters Filtros a aplicar
+   * @returns Observable con las tarjetas de alojamientos
+   */
+  getAccommodationCards(filters?: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/cards`, filters || {});
+  }
+
+  /**
+   * Obtiene los comentarios de un alojamiento
+   * @param id ID del alojamiento
+   * @returns Observable con los comentarios
+   */
+  getAccommodationComments(id: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}/comments`);
+  }
 
   /**
    * Buscar alojamientos con filtros - SOLO BACKEND
@@ -192,41 +275,33 @@ export class PlacesService {
   }
 
   /**
-   * Actualizar accommodation - SOLO BACKEND
+   * Actualiza un alojamiento existente
+   * @param id ID del alojamiento
+   * @param updateData Datos a actualizar
+   * @returns Observable con la respuesta
    */
-  updateAccommodation(id: number, updateData: EditAccommodationDTO): Observable<ResponseDTO<string>> {
-    console.log('✏️ Actualizando alojamiento:', id);
+  updateAccommodation(id: number, updateData: any): Observable<AccommodationResponse> {
+    const headers = this.getAuthHeaders();
     
-    return this.http.patch<ResponseDTO<string>>(`${this.apiUrl}/edit/${id}`, updateData)
-      .pipe(
-        map(response => {
-          console.log('✅ Alojamiento actualizado:', response);
-          return response;
-        }),
-        catchError(error => {
-          console.error('❌ Error actualizando alojamiento:', error);
-          throw error;
-        })
-      );
+    return this.http.patch<AccommodationResponse>(
+      `${this.apiUrl}/edit/${id}`,
+      updateData,
+      { headers }
+    );
   }
 
   /**
-   * Eliminar alojamiento - SOLO BACKEND
+   * Elimina (soft delete) un alojamiento
+   * @param id ID del alojamiento
+   * @returns Observable con la respuesta
    */
-  deleteAccommodation(id: number): Observable<ResponseDTO<string>> {
-    console.log('🗑️ Eliminando alojamiento:', id);
+  deleteAccommodation(id: number): Observable<AccommodationResponse> {
+    const headers = this.getAuthHeaders();
     
-    return this.http.delete<ResponseDTO<string>>(`${this.apiUrl}/${id}`)
-      .pipe(
-        map(response => {
-          console.log('✅ Alojamiento eliminado:', response);
-          return response;
-        }),
-        catchError(error => {
-          console.error('❌ Error eliminando alojamiento:', error);
-          throw error;
-        })
-      );
+    return this.http.delete<AccommodationResponse>(
+      `${this.apiUrl}/${id}`,
+      { headers }
+    );
   }
 
   /**
@@ -278,5 +353,46 @@ export class PlacesService {
   // Método auxiliar para obtener imagen por defecto
   private getDefaultImage(): string {
     return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
+  }
+
+  /**
+   * Busca alojamientos con filtros avanzados
+   * @param filters Objeto con los filtros de búsqueda
+   * @returns Observable con los resultados
+   */
+  searchAccommodations(filters: any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    
+    return this.http.get(
+      `${this.apiUrl}`,
+      { 
+        headers,
+        params: this.buildQueryParams(filters)
+      }
+    );
+  }
+
+  /**
+   * Construye los parámetros de consulta para la búsqueda
+   * @param filters Filtros de búsqueda
+   * @returns Objeto con los parámetros
+   */
+  private buildQueryParams(filters: any): any {
+    const params: any = {};
+    
+    if (filters.city) params.city = filters.city;
+    if (filters.checkIn) params.checkIn = filters.checkIn;
+    if (filters.checkOut) params.checkOut = filters.checkOut;
+    if (filters.minPrice) params.minPrice = filters.minPrice;
+    if (filters.maxPrice) params.maxPrice = filters.maxPrice;
+    if (filters.guestsCount) params.guestsCount = filters.guestsCount;
+    if (filters.services && filters.services.length > 0) {
+      params.services = filters.services.join(',');
+    }
+    if (filters.page !== undefined) params.page = filters.page;
+    
+    return params;
   }
 }

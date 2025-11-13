@@ -15,6 +15,7 @@ import { Role } from '../../models/user-role';
 })
 export class Header implements OnInit {
   protected readonly title = signal('SnugPlace');
+  isLogged = false;
   
   menuOpen = false;
   isScrolled = false;
@@ -26,7 +27,12 @@ export class Header implements OnInit {
     private tokenService: TokenService,
     private userService: UserService,
     private router: Router
-  ) {}
+  ) {
+    this.isLogged = this.tokenService.isLogged();
+    if (this.isLogged) {
+      this.userId = this.tokenService.getUserId();
+  }
+}
 
   ngOnInit() {
     this.checkAuthentication();

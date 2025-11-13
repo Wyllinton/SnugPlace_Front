@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccommodationCardComponent } from '../../components/accommodation-card/accommodation-card';
-import { PlacesService, SearchFilters } from '../../services/places-service';
+import { AccommodationService, SearchFilters } from '../../services/places-service';
 import { PlaceCardDTO } from '../../models/place-dto';
 import { ResponseListDTO } from '../../models/response-list-dto';
 
@@ -55,7 +55,7 @@ export class Home implements OnInit {
   minPriceFormatted = '0';
   maxPriceFormatted = '1,000,000';
 
-  constructor(private placesService: PlacesService) {}
+  constructor(private placesService: AccommodationService) {}
 
   ngOnInit() {
     console.log('🏠 Componente Home inicializado');

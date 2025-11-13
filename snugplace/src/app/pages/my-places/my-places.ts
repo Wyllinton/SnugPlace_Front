@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { PlaceDTO } from '../../models/place-dto';
-import { PlacesService } from '../../services/places-service';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router'; 
+import { PlacesService } from '../../services/accommodations-service';
 
 @Component({
   selector: 'app-my-places',

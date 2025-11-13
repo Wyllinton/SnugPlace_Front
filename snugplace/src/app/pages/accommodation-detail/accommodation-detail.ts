@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { PlacesService } from '../../services/places-service';
+import { AccommodationService } from '../../services/places-service';
 import { PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { MapService } from '../../services/map-service';
@@ -20,7 +20,7 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private route: ActivatedRoute, 
-    private placesServices: PlacesService,
+    private placesServices: AccommodationService,
     private router: Router,
     private mapService: MapService
   ){

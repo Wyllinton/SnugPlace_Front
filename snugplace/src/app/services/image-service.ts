@@ -3,137 +3,64 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-interface CloudinaryResponse {
+// Interfaz para la respuesta de Cloudinary
+export interface CloudinaryResponse {
   url: string;
-  public_id: string;
-  secure_url: string;
-  format: string;
-  width: number;
-  height: number;
-  bytes: number;
-  created_at: string;
+  cloudinaryId: string;
 }
 
-interface ApiResponse<T> {
+// Interfaz para la respuesta del backend
+export interface ImageUploadResponse {
   error: boolean;
-  content: T;
-  message?: string;
+  content: CloudinaryResponse;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
+  private apiUrl = 'http://localhost:8080/images';
 
-  private readonly API_URL = 'http://localhost:8080/api/images';
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   /**
-   * Sube una imagen de perfil
-   * @param file Archivo de imagen
-   * @returns Observable con la respuesta de Cloudinary
+   * Sube una imagen a Cloudinary a través del backend
+   * @param file Archivo de imagen a subir
+   * @returns Observable con la respuesta conteniendo URL y ID de Cloudinary
    */
-  uploadProfileImage(file: File): Observable<CloudinaryResponse> {
+  uploadImage(file: File): Observable<ImageUploadResponse> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<ApiResponse<CloudinaryResponse>>(
-      `${this.API_URL}/profile`,
-      formData
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.message || 'Error al subir imagen de perfil');
-        }
-        return response.content;
-      })
-    );
+    return this.http.post<ImageUploadResponse>(this.apiUrl, formData);
   }
 
   /**
-   * Sube múltiples imágenes de alojamiento
-   * @param files Array de archivos de imagen
-   * @returns Observable con array de respuestas de Cloudinary
+   * Sube múltiples imágenes de forma secuencial
+   * @param files Array de archivos a subir
+   * @returns Promise con array de respuestas
    */
-  uploadAccommodationImages(files: File[]): Observable<CloudinaryResponse[]> {
-    const formData = new FormData();
-    
-    files.forEach((file, index) => {
-      formData.append('files', file);
-    });
-
-    return this.http.post<ApiResponse<CloudinaryResponse[]>>(
-      `${this.API_URL}/accommodation/multiple`,
-      formData
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.message || 'Error al subir imágenes de alojamiento');
-        }
-        return response.content;
-      })
+  async uploadMultipleImages(files: File[]): Promise<CloudinaryResponse[]> {
+    const uploadPromises = files.map(file => 
+      this.uploadImage(file).toPromise()
     );
-  }
 
-  /**
-   * Sube una sola imagen de alojamiento
-   * @param file Archivo de imagen
-   * @returns Observable con la respuesta de Cloudinary
-   */
-  uploadAccommodationImage(file: File): Observable<CloudinaryResponse> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return this.http.post<ApiResponse<CloudinaryResponse>>(
-      `${this.API_URL}/accommodation`,
-      formData
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.message || 'Error al subir imagen de alojamiento');
-        }
-        return response.content;
-      })
-    );
+    try {
+      const responses = await Promise.all(uploadPromises);
+      return responses.map(response => response!.content);
+    } catch (error) {
+      console.error('Error al subir imágenes:', error);
+      throw error;
+    }
   }
 
   /**
    * Elimina una imagen de Cloudinary
-   * @param publicId El public_id de la imagen en Cloudinary
-   * @returns Observable con el resultado
+   * @param cloudinaryId ID de la imagen en Cloudinary
+   * @returns Observable con la respuesta
    */
-  deleteImage(publicId: string): Observable<string> {
-    return this.http.delete<ApiResponse<string>>(
-      `${this.API_URL}`,
-      { params: { publicId } }
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.message || 'Error al eliminar imagen');
-        }
-        return response.content;
-      })
-    );
-  }
-
-  /**
-   * Elimina múltiples imágenes de Cloudinary
-   * @param publicIds Array de public_ids
-   * @returns Observable con el resultado
-   */
-  deleteMultipleImages(publicIds: string[]): Observable<string> {
-    return this.http.delete<ApiResponse<string>>(
-      `${this.API_URL}/multiple`,
-      { body: publicIds }
-    ).pipe(
-      map(response => {
-        if (response.error) {
-          throw new Error(response.message || 'Error al eliminar imágenes');
-        }
-        return response.content;
-      })
-    );
+  deleteImage(cloudinaryId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}?id=${cloudinaryId}`);
   }
 
   /**
