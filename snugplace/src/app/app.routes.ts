@@ -31,7 +31,7 @@ export const routes: Routes = [
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'accommodation-detail/:id', component: AccommodationDetailUser },
     { path: 'host/accommodations', component: HostAccommodations, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
-    { path: 'create', component: CreateAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
+    { path: 'accommodations/create', component: CreateAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: 'accommodation/edit/:id', component: EditAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' }},
     { path: 'metrics/accommodations/:id', component: AccommodationMetric, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: 'bookings', component: Bookings },
