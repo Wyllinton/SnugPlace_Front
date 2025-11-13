@@ -12,52 +12,70 @@ import { TokenService } from './token-service';
   providedIn: 'root'
 })
 export class UserService {
-  private usersURL = "http://localhost:8080/users";
+  private usersURL = "http://localhost:8080/users"; // ✅ SIN /api/
 
   constructor(private http: HttpClient, private tokenService: TokenService) { }
 
-  // REGISTER - POST /users/register
+  // REGISTER NORMAL - POST /users/register
   public register(createUserDTO: CreateUserDTO): Observable<ResponseDTO<string>> {
     return this.http.post<ResponseDTO<string>>(`${this.usersURL}/register`, createUserDTO);
   }
 
-  // OBTENER PERFIL - GET /users/{id}/profile
+  // REGISTER CON IMAGEN - POST /users/register-with-image
+  public registerWithImage(formData: FormData): Observable<ResponseDTO<any>> {
+    return this.http.post<ResponseDTO<any>>(`${this.usersURL}/register-with-image`, formData);
+  }
+
+  // OBTENER PERFIL - GET /users/{id}
   public getProfile(id: number): Observable<ResponseDTO<UserDTO>> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.get<ResponseDTO<UserDTO>>(`${this.usersURL}/${id}/profile`, { headers });
+    return this.http.get<ResponseDTO<UserDTO>>(`${this.usersURL}/${id}`, { headers });
   }
 
-  // ACTUALIZAR PERFIL - PATCH /users/{id}/profile/edit
+  // ACTUALIZAR PERFIL - PUT /users/{id}
   public updateProfile(id: number, updateProfileDTO: UpdateProfileDTO): Observable<ResponseDTO<string>> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.patch<ResponseDTO<string>>(`${this.usersURL}/${id}/profile/edit`, updateProfileDTO, { headers });
+    return this.http.put<ResponseDTO<string>>(`${this.usersURL}/${id}`, updateProfileDTO, { headers });
   }
 
-  // ELIMINAR USUARIO - DELETE /users/{id}/profile/del
+  // ACTUALIZAR IMAGEN DE PERFIL - PUT /users/{id}/profile-image
+  public updateProfileImage(id: number, imageFile: File): Observable<ResponseDTO<any>> {
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    
+    const token = this.tokenService.getToken();
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+    
+    return this.http.put<ResponseDTO<any>>(`${this.usersURL}/${id}/profile-image`, formData, { headers });
+  }
+
+  // ELIMINAR USUARIO - DELETE /users/{id}
   public deleteUser(id: number): Observable<ResponseDTO<string>> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.delete<ResponseDTO<string>>(`${this.usersURL}/${id}/profile/del`, { headers });
+    return this.http.delete<ResponseDTO<string>>(`${this.usersURL}/${id}`, { headers });
   }
 
-  // CAMBIAR CONTRASEÑA - PATCH /users/{id}/profile/change-password
+  // CAMBIAR CONTRASEÑA - PUT /users/{id}/change-password
   public changePassword(id: number, changePasswordDTO: ChangeUserPasswordDTO): Observable<ResponseDTO<string>> {
     const token = this.tokenService.getToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     });
-    return this.http.patch<ResponseDTO<string>>(`${this.usersURL}/${id}/profile/change-password`, changePasswordDTO, { headers });
+    return this.http.put<ResponseDTO<string>>(`${this.usersURL}/${id}/change-password`, changePasswordDTO, { headers });
   }
 }
