@@ -55,7 +55,7 @@
 
     <!-- Foto de perfil con preview -->
     <div>
-        <label>Foto de perfil: </label>
+        <label>Foto de perfil (opcional): </label>
         <input 
             type="file" 
             accept="image/jpeg,image/jpg,image/png,image/webp"
@@ -100,10 +100,10 @@
 
     <button 
         type="submit" 
-        [disabled]="registerForm.invalid || isUploadingImage"
+        [disabled]="registerForm.invalid || isUploading"
     >
-        @if (isUploadingImage) {
-            <span>Subiendo imagen...</span>
+        @if (isUploading) {
+            <span>Registrando...</span>
         } @else {
             <span>Registrarse</span>
         }

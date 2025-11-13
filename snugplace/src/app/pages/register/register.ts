@@ -18,7 +18,7 @@ export class Register {
   registerForm!: FormGroup;
   selectedProfileImage: File | null = null;
   profileImageUrl: string | null = null;
-  isUploadingImage: boolean = false;
+  isUploading: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -33,7 +33,6 @@ export class Register {
     this.registerForm = this.formBuilder.group({
       name: ['', [Validators.required]],
       phoneNumber: ['', [Validators.required, Validators.maxLength(10)]],
-      profilePhoto: [''], // Se llenará con la URL de Cloudinary
       description: [''],
       repeatPassword: ['', [Validators.required, Validators.maxLength(20), Validators.minLength(8)]],
       role: ['', [Validators.required]],
@@ -78,36 +77,9 @@ export class Register {
   }
 
   /**
-   * Sube la imagen de perfil a Cloudinary
+   * Crea el usuario con imagen en un solo paso
    */
-  private uploadProfileImage(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!this.selectedProfileImage) {
-        resolve(''); // No hay imagen, continuar sin ella
-        return;
-      }
-
-      this.isUploadingImage = true;
-
-      this.imageService.uploadProfileImage(this.selectedProfileImage)
-        .pipe(finalize(() => this.isUploadingImage = false))
-        .subscribe({
-          next: (response) => {
-            console.log('Imagen subida exitosamente:', response);
-            resolve(response.secure_url);
-          },
-          error: (error) => {
-            console.error('Error al subir imagen:', error);
-            reject(error);
-          }
-        });
-    });
-  }
-
-  /**
-   * Crea el usuario con validación y subida de imagen
-   */
-  public async createUser() {
+  public createUser() {
     if (this.registerForm.invalid) {
       Swal.fire({
         title: 'Error',
@@ -117,76 +89,80 @@ export class Register {
       return;
     }
 
-    try {
-      // Mostrar loading
-      Swal.fire({
-        title: 'Registrando usuario...',
-        text: 'Por favor espere',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+    this.isUploading = true;
 
-      // Subir imagen de perfil si existe
-      let profilePhotoUrl = '';
-      if (this.selectedProfileImage) {
-        try {
-          profilePhotoUrl = await this.uploadProfileImage();
-        } catch (error) {
-          Swal.fire({
-            title: 'Error',
-            text: 'Error al subir la imagen de perfil. ¿Desea continuar sin imagen?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, continuar',
-            cancelButtonText: 'Cancelar'
-          }).then((result) => {
-            if (!result.isConfirmed) {
-              throw new Error('Registro cancelado por el usuario');
-            }
-          });
-        }
+    // Mostrar loading
+    Swal.fire({
+      title: 'Registrando usuario...',
+      text: 'Por favor espere',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
       }
+    });
 
-      // Crear DTO con la URL de la imagen
-      const createUserDTO: CreateUserDTO = {
-        ...this.registerForm.value,
-        profilePhoto: profilePhotoUrl
-      };
+    // Crear FormData para enviar todo en una sola petición
+    const formData = new FormData();
+    
+    // Agregar campos del formulario
+    formData.append('name', this.registerForm.get('name')?.value);
+    formData.append('email', this.registerForm.get('email')?.value);
+    formData.append('password', this.registerForm.get('password')?.value);
+    formData.append('phoneNumber', this.registerForm.get('phoneNumber')?.value);
+    formData.append('birthDate', this.registerForm.get('birthDate')?.value);
+    formData.append('role', this.registerForm.get('role')?.value);
+    
+    // Agregar descripción si existe
+    const description = this.registerForm.get('description')?.value;
+    if (description) {
+      formData.append('description', description);
+    }
 
-      // Registrar usuario
-      this.userService.register(createUserDTO).subscribe({
-        next: (data) => {
-          Swal.fire({
-            title: 'Éxito',
-            text: data.content,
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-          }).then(() => {
-            this.router.navigate(['/login']);
-          });
-        },
-        error: (error) => {
+    // Agregar imagen si existe
+    if (this.selectedProfileImage) {
+      formData.append('profileImage', this.selectedProfileImage);
+    }
+
+    // Llamar al nuevo servicio que registra usuario e imagen en un solo paso
+    this.userService.registerWithImage(formData).subscribe({
+      next: (response) => {
+        this.isUploading = false;
+        
+        if (response.error) {
           Swal.fire({
             title: 'Error',
-            text: error.error?.content || 'Error al registrar usuario',
+            text: response.content?.message || 'Error al registrar usuario',
             icon: 'error'
           });
+          return;
         }
-      });
 
-    } catch (error: any) {
-      console.error('Error en el proceso de registro:', error);
-      if (error.message !== 'Registro cancelado por el usuario') {
+        // Éxito - mostrar mensaje con información de la imagen
+        const successMessage = this.selectedProfileImage 
+          ? `Usuario registrado exitosamente con imagen`
+          : `Usuario registrado exitosamente`;
+
+        Swal.fire({
+          title: '¡Éxito!',
+          text: successMessage,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        }).then(() => {
+          this.router.navigate(['/login']);
+        });
+      },
+      error: (error) => {
+        this.isUploading = false;
+        console.error('Error en registro:', error);
+        
         Swal.fire({
           title: 'Error',
-          text: 'Ocurrió un error durante el registro',
+          text: error.error?.content?.message || error.error?.content || 'Error al registrar usuario',
           icon: 'error'
         });
       }
-    }
+    });
   }
 
   public passwordsMatchValidator(formGroup: FormGroup) {
