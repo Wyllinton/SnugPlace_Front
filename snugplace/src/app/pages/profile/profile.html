@@ -80,6 +80,11 @@
         <button type="button" class="btn-change-password" (click)="navigateToChangePassword()">
           Cambiar contraseña
         </button>
+        
+        <!-- NUEVO BOTÓN ELIMINAR CUENTA -->
+        <button type="button" class="btn-delete-account" (click)="deleteAccount()" [disabled]="isLoading">
+          Eliminar cuenta
+        </button>
       </div>
     </form>
   </div>

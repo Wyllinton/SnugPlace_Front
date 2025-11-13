@@ -29,7 +29,7 @@ export const routes: Routes = [
     { path: 'accommodation/:id', component: AccommodationDetail },
     { path: 'accommodation-detail/:id', component: AccommodationDetailUser },
     { path: 'host/accommodations', component: HostAccommodations },
-    { path: 'host/accommodations/create', component: CreateAccommodation },
+    { path: 'create', component: CreateAccommodation },
     { path: 'accommodation/edit/:id', component: EditAccommodation },
     { path: 'metrics/accommodations/:id', component: AccommodationMetric },
     { path: 'bookings', component: Bookings },

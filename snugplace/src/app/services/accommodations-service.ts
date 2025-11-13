@@ -34,7 +34,7 @@ export class PlacesService {
   places: PlaceDTO[];
   
   // Para desarrollo - simular llamadas HTTP
-  private apiUrl = 'http://localhost:8080/api/accommodations';
+  private apiUrl = 'http://localhost:8080/accommodations';
   private useMock = true; // Cambiar a false cuando el backend esté listo
 
   constructor(private http: HttpClient){

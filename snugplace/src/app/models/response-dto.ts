@@ -1,4 +1,4 @@
 export interface ResponseDTO<T> {
     error: boolean,
-    content: T
+    content: T 
 }

@@ -131,7 +131,6 @@ export class Profile implements OnInit {
               icon: 'success',
               confirmButtonText: 'Aceptar'
             }).then(() => {
-              // ✅ CAMBIO AQUÍ: Redirigir al HOME en lugar de recargar los datos
               this.router.navigate(['/']);
             });
           } else {
@@ -148,6 +147,58 @@ export class Profile implements OnInit {
       console.warn('Formulario inválido o ID de usuario no disponible');
       this.profileForm.markAllAsTouched();
     }
+  }
+
+  // NUEVO MÉTODO: ELIMINAR CUENTA
+  deleteAccount() {
+    if (!this.userId) {
+      Swal.fire('Error', 'No se pudo identificar el usuario', 'error');
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción eliminará permanentemente tu cuenta y todos tus datos. ¡Esta acción no se puede deshacer!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar cuenta',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.isLoading = true;
+        
+        this.userService.deleteUser(this.userId!).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            
+            if (!response.error) {
+              Swal.fire({
+                title: 'Cuenta eliminada',
+                text: response.content || 'Tu cuenta ha sido eliminada exitosamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar'
+              }).then(() => {
+                // Cerrar sesión y redirigir al home
+                this.tokenService.logout();
+                this.router.navigate(['/']).then(() => {
+                  window.location.reload();
+                });
+              });
+            } else {
+              Swal.fire('Error', response.content || 'Error al eliminar la cuenta', 'error');
+            }
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Error al eliminar cuenta:', error);
+            Swal.fire('Error', error.message || 'Error al eliminar la cuenta', 'error');
+          }
+        });
+      }
+    });
   }
 
   onPhotoSelected(event: any) {

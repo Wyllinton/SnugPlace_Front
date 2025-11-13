@@ -1,4 +1,4 @@
-<form [formGroup]="registerForm" (ngSubmit)="createUser()" novalidate="">
+<form [formGroup]="registerForm" (ngSubmit)="createUser()" novalidate>
     
     <div class="register-header">
         <h2>Regístrate en SnugPlace</h2>
@@ -8,36 +8,73 @@
     <div>
         <label>Nombre: </label>
         <input type="text" formControlName="name" />
+        @if (registerForm.get('name')?.invalid && registerForm.get('name')?.touched) {
+            <span class="error-message">El nombre es obligatorio</span>
+        }
     </div>
 
     <div>
         <label>Teléfono: </label>
         <input type="text" formControlName="phoneNumber" />
+        @if (registerForm.get('phoneNumber')?.invalid && registerForm.get('phoneNumber')?.touched) {
+            <span class="error-message">El teléfono es obligatorio (máx. 10 dígitos)</span>
+        }
     </div>
 
     <div>
         <label>Fecha de nacimiento: </label>
         <input type="date" formControlName="birthDate" />
+        @if (registerForm.get('birthDate')?.invalid && registerForm.get('birthDate')?.touched) {
+            <span class="error-message">La fecha de nacimiento es obligatoria</span>
+        }
     </div>
 
     <div>
         <label>Correo: </label>
         <input type="email" formControlName="email" />
+        @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+            <span class="error-message">Ingrese un correo válido</span>
+        }
     </div>
 
     <div>
         <label>Contraseña: </label>
         <input type="password" formControlName="password" />
+        @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+            <span class="error-message">La contraseña debe tener entre 8 y 20 caracteres</span>
+        }
     </div>
 
     <div>
         <label>Repetir contraseña: </label>
         <input type="password" formControlName="repeatPassword" />
+        @if (registerForm.get('repeatPassword')?.invalid && registerForm.get('repeatPassword')?.touched) {
+            <span class="error-message">Repita la contraseña</span>
+        }
     </div>
 
+    <!-- Foto de perfil con preview -->
     <div>
         <label>Foto de perfil: </label>
-        <input type="file" formControlName="profilePhoto" />
+        <input 
+            type="file" 
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            (change)="onProfileImageSelected($event)"
+        />
+        
+        <!-- Preview de la imagen -->
+        @if (profileImageUrl) {
+            <div class="image-preview">
+                <img [src]="profileImageUrl" alt="Preview" />
+                <button type="button" class="remove-image-btn" (click)="clearProfileImage()">
+                    <span>✕</span>
+                </button>
+            </div>
+        }
+        
+        <small class="helper-text">
+            Formatos permitidos: JPG, PNG, WEBP. Tamaño máximo: 5MB
+        </small>
     </div>
 
     <div>
@@ -52,11 +89,23 @@
             <option value="USER">Usuario</option>
             <option value="HOST">Anfitrión</option>
         </select>
+        @if (registerForm.get('role')?.invalid && registerForm.get('role')?.touched) {
+            <span class="error-message">Seleccione un rol</span>
+        }
     </div>
     
-    @if (registerForm.hasError('passwordsMismatch')) {
-        <p>Las contraseñas no coinciden</p>
+    @if (registerForm.hasError('passwordsMismatch') && registerForm.get('repeatPassword')?.touched) {
+        <p class="error-message">Las contraseñas no coinciden</p>
     }
 
-    <button type="submit" [disabled]="registerForm.invalid">Registrarse</button>
+    <button 
+        type="submit" 
+        [disabled]="registerForm.invalid || isUploadingImage"
+    >
+        @if (isUploadingImage) {
+            <span>Subiendo imagen...</span>
+        } @else {
+            <span>Registrarse</span>
+        }
+    </button>
 </form>
