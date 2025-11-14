@@ -302,11 +302,59 @@ export class BookingService {
   }
 
   getMyBookings(): Observable<ResponseDTO<BookingDTO[]>> {
-    console.log('📅 Obteniendo mis reservas');
+    console.log('📅 Obteniendo mis reservas desde /my-bookings...');
     
-    // Usar filtros vacíos para obtener todas las reservas del usuario
-    const emptyFilters: FilteredBookingDTO = {};
+    const headers = new HttpHeaders({
+      'Accept': 'application/json'
+    });
+
+    return this.http.get<ResponseDTO<BookingDTO[]>>(`${this.apiUrl}/my-bookings`, { headers })
+      .pipe(
+        tap(response => {
+          console.log('✅ Respuesta de /my-bookings:', response);
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo mis reservas:', error);
+          
+          let errorMessage = 'Error obteniendo reservas';
+          if (error.error?.content) {
+            errorMessage = error.error.content;
+          }
+
+          return of({
+            error: true,
+            content: []
+          } as ResponseDTO<BookingDTO[]>);
+        })
+      );
+  }
+
+  // Método para hosts (si necesitas detalles específicos de host)
+  getBookingDetailHost(id: number): Observable<ResponseDTO<any>> {
+    console.log('🏠 Obteniendo detalles de reserva para host ID:', id);
     
-    return this.searchFilteredBookings(emptyFilters);
+    const headers = new HttpHeaders({
+      'Accept': 'application/json'
+    });
+
+    return this.http.get<ResponseDTO<any>>(`${this.apiUrl}/${id}/detail`, { headers })
+      .pipe(
+        tap(response => {
+          console.log('✅ Detalles de reserva para host recibidos:', response);
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo detalles para host:', error);
+          
+          let errorMessage = 'Error obteniendo detalles de la reserva';
+          if (error.error?.content) {
+            errorMessage = error.error.content;
+          }
+
+          return of({
+            error: true,
+            content: null as any
+          } as ResponseDTO<any>);
+        })
+      );
   }
 }

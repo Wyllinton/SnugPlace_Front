@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, 
 import { Router, ActivatedRoute } from '@angular/router';
 import { BookingService, CreateBookingDTO } from '../../services/booking-service';
 import { AccommodationService } from '../../services/accommodations-service';
-import { PlaceDTO } from '../../models/place-dto';
 import { ResponseDTO } from '../../models/response-dto';
 import Swal from 'sweetalert2';
 
@@ -326,7 +325,7 @@ export class CreateBooking implements OnInit {
             this.successMessage = response.content;
             
             setTimeout(() => {
-              this.router.navigate(['/bookings']);
+              this.router.navigate(['/my-bookings']);
             }, 2000);
           } else {
             this.errorMessage = response.content;
@@ -386,7 +385,6 @@ export class CreateBooking implements OnInit {
         errors.push('Las fechas seleccionadas no están disponibles');
       }
     }
-
     return errors;
   }
 }

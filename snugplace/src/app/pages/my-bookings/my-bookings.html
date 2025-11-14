@@ -1,0 +1,238 @@
+<div class="container pt-5 pb-5">
+    <h5 class="mb-0 d-flex align-items-center">
+        <span class="material-symbols-rounded filled fs-2 me-3">calendar_month</span>
+        Mis Reservas
+    </h5>
+    <hr />
+
+    <!-- Alertas de error -->
+    @if (errorMessage) {
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <span class="material-symbols-rounded me-2">error</span>
+        <div>
+            {{ errorMessage }}
+        </div>
+    </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="button" routerLink="/"
+                    class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2">
+                    <span class="material-symbols-rounded">search</span>
+                    Buscar Alojamientos
+                </button>
+                
+                <div class="d-flex gap-2">
+                    <!-- Filtro rápido por estado -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="material-symbols-rounded me-1">filter_list</span>
+                            Filtrar
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" (click)="filterByStatus('')">Todas las reservas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" (click)="filterByStatus('PENDING')">
+                                <span class="badge bg-warning me-2">●</span>Pendientes
+                            </a></li>
+                            <li><a class="dropdown-item" (click)="filterByStatus('CONFIRMED')">
+                                <span class="badge bg-success me-2">●</span>Confirmadas
+                            </a></li>
+                            <li><a class="dropdown-item" (click)="filterByStatus('CANCELED')">
+                                <span class="badge bg-danger me-2">●</span>Canceladas
+                            </a></li>
+                            <li><a class="dropdown-item" (click)="filterByStatus('COMPLETED')">
+                                <span class="badge bg-info me-2">●</span>Completadas
+                            </a></li>
+                        </ul>
+                    </div>
+                    
+                    <button type="button" (click)="refresh()" 
+                        class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2"
+                        [disabled]="isLoading">
+                        <span class="material-symbols-rounded" [class.spin]="isLoading">refresh</span>
+                        {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <!-- Estado de carga -->
+            @if (isLoading) {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="text-muted mb-0">Cargando tus reservas...</p>
+            </div>
+            }
+
+            <!-- Tabla de reservas -->
+            @if (!isLoading) {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">ID</th>
+                            <th scope="col">Alojamiento</th>
+                            <th scope="col">Fechas</th>
+                            <th scope="col" class="text-center">Huéspedes</th>
+                            <th scope="col" class="text-center">Precio Total</th>
+                            <th scope="col" class="text-center">Estado</th>
+                            <th scope="col" class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="border-top-0">
+                        @if (filteredBookings.length === 0) {
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <span class="material-symbols-rounded filled fs-1 mb-3 text-muted">calendar_month</span>
+                                    <h5 class="text-muted">
+                                        @if (currentFilter) {
+                                        No hay reservas {{ getStatusText(currentFilter).toLowerCase() }}
+                                        } @else {
+                                        No tienes reservas
+                                        }
+                                    </h5>
+                                    <p class="mb-0">Comienza explorando nuestros alojamientos disponibles</p>
+                                    <small>Haz clic en "Buscar Alojamientos" para comenzar</small>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                        
+                        @for (booking of filteredBookings; track booking.id || $index) {
+                        <tr class="hover-shadow">
+                             <td class="ps-4">
+                                <span class="text-muted small">#{{ booking.id }}</span>
+                                <!-- ELIMINAR esta línea que causa el error -->
+                                <!-- <br>
+                                <small class="text-muted">{{ formatDate(booking.createdAt) }}</small> -->
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="flex-shrink-0">
+                                        <div class="bg-light rounded-2 d-flex align-items-center justify-content-center"
+                                            style="width: 60px; height: 45px;">
+                                            <span class="material-symbols-rounded text-muted">apartment</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-semibold text-truncate" style="max-width: 200px;">
+                                            {{ getAccommodationTitle(booking.idAccommodation) }}
+                                        </h6>
+                                        <p class="mb-0 small text-muted">
+                                            @if (isHostView()) {
+                                            Reservado por: {{ booking.user.name }}
+                                            } @else {
+                                            {{ getAccommodationLocation(booking.idAccommodation) }}
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="fw-medium">
+                                        <span class="text-success">Entrada:</span> {{ formatDate(booking.dateCheckIn) }}
+                                    </div>
+                                    <div class="text-muted">
+                                        <span class="text-primary">Salida:</span> {{ formatDate(booking.dateCheckOut) }}
+                                    </div>
+                                    <div class="text-muted mt-1">
+                                        <small>{{ getNightsCount(booking.dateCheckIn, booking.dateCheckOut) }} noches</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-semibold">{{ booking.guestsCount }}</span>
+                                <div class="small text-muted">huéspedes</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-bold text-success fs-6">
+                                    ${{ booking.price | number:'1.0-0' }}
+                                </span>
+                                <div class="small text-muted">total</div>
+                            </td>
+                            <td class="text-center">
+                                <span [class]="getStatusBadgeClass(booking.status)" class="badge">
+                                    {{ getStatusText(booking.status) }}
+                                </span>
+                                @if (isUpcomingBooking(booking.dateCheckIn) && booking.status === 'CONFIRMED') {
+                                <div class="small text-success mt-1">
+                                    <span class="material-symbols-rounded" style="font-size: 14px;">schedule</span>
+                                    Próxima
+                                </div>
+                                }
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Botón Ver Detalles -->
+                                    <button (click)="viewBookingDetails(booking.id)" 
+                                        class="btn btn-outline-primary btn-icon rounded-start-2"
+                                        title="Ver detalle">
+                                        <span class="material-symbols-rounded">visibility</span>
+                                    </button>
+
+                                    <!-- Acciones según estado y rol -->
+                                    @if (canCancelBooking(booking.status) && !isHostView()) {
+                                    <button (click)="cancelBooking(booking.id)" 
+                                        type="button" 
+                                        class="btn btn-outline-danger btn-icon rounded-end-2"
+                                        title="Cancelar reserva">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                    }
+
+                                    @if (booking.status === 'PENDING' && isHostView()) {
+                                    <button (click)="confirmBooking(booking.id)" 
+                                        type="button" 
+                                        class="btn btn-outline-success btn-icon rounded-0"
+                                        title="Confirmar reserva">
+                                        <span class="material-symbols-rounded">check</span>
+                                    </button>
+                                    <button (click)="cancelBookingByHost(booking.id)" 
+                                        type="button" 
+                                        class="btn btn-outline-danger btn-icon rounded-end-2"
+                                        title="Rechazar reserva">
+                                        <span class="material-symbols-rounded">close</span>
+                                    </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+
+        <!-- Resumen -->
+        @if (!isLoading && filteredBookings.length > 0) {
+        <div class="card-footer bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Mostrando {{ filteredBookings.length }} de {{ allBookings.length }} reserva(s)
+                    @if (currentFilter) {
+                    - Filtrado por: {{ getStatusText(currentFilter) }}
+                    }
+                </small>
+                <div>
+                    @if (currentFilter) {
+                    <button (click)="clearFilter()" class="btn btn-sm btn-outline-secondary">
+                        Limpiar filtro
+                    </button>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>

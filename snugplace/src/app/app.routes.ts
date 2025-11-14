@@ -16,6 +16,7 @@ import { BookingDetail } from './pages/booking-detail/booking-detail';
 import { Profile } from './pages/profile/profile';
 import { CommentsAccommodation} from './pages/comments-accommodation/comments-accommodation';
 import { MyPlaces } from './pages/my-places/my-places';
+import { MyBookings } from './pages/my-bookings/my-bookings';
 import { loginGuard } from './guards/login-service';
 import { roleGuard } from './guards/role-service';
 
@@ -33,6 +34,7 @@ export const routes: Routes = [
     { path: 'accommodation/edit/:id', component: EditAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' }},
     { path: 'metrics/accommodations/:id', component: AccommodationMetric, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: 'bookings', component: Bookings },
+    { path: 'my-bookings', component: MyBookings },
     { path: 'bookings/create/:id', component: CreateBooking }, 
     { path: 'booking/:id', component: BookingDetail },
     { path: 'comments/:AccommodationId', component: CommentsAccommodation },
