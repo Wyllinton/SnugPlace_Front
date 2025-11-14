@@ -1,6 +1,5 @@
-// En accommodations-service.ts - ACTUALIZAR PARA COINCIDIR EXACTAMENTE
 export interface CreateAccommodationDTO {
-  host: HostDTO;                    // ✅ Objeto HostDTO
+  host: HostDTO;                    // ✅ Agregar host
   title: string;
   description: string;
   city: string;
@@ -9,17 +8,20 @@ export interface CreateAccommodationDTO {
   longitude: number;
   priceDay: number;
   guestsCount: number;
-  averageRating: number;            // ✅ Requerido
-  status: string;                   // ✅ Requerido - "ACTIVE", "INACTIVE", etc.
-  services: string[];               // ✅ Lista de servicios (WIFI, PARKING, etc.)
-  images: any[];                    // ✅ Set en backend, pero array en frontend
-  comments?: any[];                 // ✅ Opcional
+  averageRating: number;            // ✅ Agregar
+  status: string;                   // ✅ Agregar
+  services: string[];
+  images: any[];                    // ✅ Mantener como any[]
+  comments?: any[];                 // ✅ Agregar opcional
 }
 
 export interface HostDTO {
-  id: string;                       // ✅ Solo necesita el ID según tu prueba HTTP
+  id: number;  // ✅ Cambiar a number
+  name: string; // ✅ Agregar name
+  email: string; // ✅ Agregar email
 }
 
+// Las demás interfaces (ImageDTO, SearchFilters, etc.) SE MANTIENEN IGUAL
 export interface ImageDTO {
   url: string;
   cloudinaryId: string;

@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
-import { PlaceDTO } from '../../models/place-dto';
+import { Component, OnInit } from '@angular/core';
+import { PlaceCardDTO, PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router'; 
 import { AccommodationService } from '../../services/accommodations-service';
+import { ResponseListDTO } from '../../models/response-list-dto';
 
 @Component({
   selector: 'app-my-places',
@@ -10,12 +11,22 @@ import { AccommodationService } from '../../services/accommodations-service';
   templateUrl: './my-places.html',
   styleUrl: './my-places.css'
 })
-export class MyPlaces {
+export class MyPlaces implements OnInit {
 
-  places: PlaceDTO[];
+  places: PlaceDTO[] = [];
 
   constructor(private placesService: AccommodationService) {
-    this.places = this.placesService.getAll();
+  }
+
+  ngOnInit(): void {
+    this.placesService.getAll().subscribe((resp: ResponseListDTO<PlaceCardDTO[]>) => {
+      // adapt depending on your API shape:
+      // common case: resp.data is the array
+      this.places = (resp as any).data ?? (resp as unknown as PlaceDTO[]);
+    }, err => {
+      // handle error (optional)
+      console.error(err);
+    });
   }
 
   public onDelete(placeId: number) {

@@ -30,15 +30,19 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  public get(placeID: string){
-    // El id que se recibe por la url es de tipo string, pero en el servicio es de tipo number por eso se hace el parseInt
-    const selectedPlace = this.placesServices.get(parseInt(placeID));
-    if(selectedPlace != undefined){
-      this.place = selectedPlace;
-      // Inicializar el mapa cuando los datos del lugar estén disponibles
+  public get(placeID: string): void {
+  this.placesServices.getAccommodationById(+placeID).subscribe({
+    next: (resp) => {
+      // adjust depending on ResponseDTO shape:
+      // if ResponseDTO has `data` with the PlaceDTO:
+      this.place = (resp as any).data ?? (resp as unknown as PlaceDTO);
       this.initializeMapWithPlaceLocation();
+    },
+    error: (err) => {
+      console.error('Failed fetching place', err);
     }
-  }
+  });
+}
 
   ngOnInit(): void {
     // El mapa se inicializará después de cargar los datos del lugar

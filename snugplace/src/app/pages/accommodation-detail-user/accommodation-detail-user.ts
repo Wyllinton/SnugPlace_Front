@@ -30,13 +30,19 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
-  public get(placeID: string){
-    const selectedPlace = this.placesServices.get(parseInt(placeID));
-    if(selectedPlace != undefined){
-      this.place = selectedPlace;
+  public get(placeID: string): void {
+  this.placesServices.getAccommodationById(+placeID).subscribe({
+    next: (resp) => {
+      // adjust depending on ResponseDTO shape:
+      // if ResponseDTO has `data` with the PlaceDTO:
+      this.place = (resp as any).data ?? (resp as unknown as PlaceDTO);
       this.initializeMapWithPlaceLocation();
+    },
+    error: (err) => {
+      console.error('Failed fetching place', err);
     }
-  }
+  });
+}
 
   ngOnInit(): void {}
 

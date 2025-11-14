@@ -4,12 +4,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MapService } from '../../services/map-service';
 import { ImageService, CloudinaryResponse } from '../../services/image-service';
-import { CreateAccommodationDTO, ImageDTO } from '../../services/accommodations-service';
-import { AuthService } from '../../services/auth-service'; // ✅ USANDO TU SERVICIO EXISTENTE
+import { AccommodationService, CreateAccommodationDTO, ImageDTO } from '../../services/accommodations-service';
+import { TokenService } from '../../services/token-service';
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
-import { AccommodationService } from '../../services/accommodations-service';
-
 
 interface LocationCoordinates {
   latitude: number;
@@ -25,16 +23,15 @@ interface LocationCoordinates {
 export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   createAccommodationForm!: FormGroup;
   selectedFiles: File[] = [];
-  selectedServices: string[] = [];
+  selectedServices: string[] = []; // ✅ Array de ENUMS
   
   cities: string[];
   servicesList: string[];
+  serviceDisplayNames: { [key: string]: string };
 
-  // Variables para el mapa
   selectedLocation: LocationCoordinates | null = null;
   private locationSubscription?: Subscription;
 
-  // Estado de carga
   isSubmitting = false;
   isUploadingImages = false;
 
@@ -43,7 +40,7 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     private mapService: MapService,
     private imageService: ImageService,
     private accommodationService: AccommodationService,
-    private authService: AuthService,
+    private tokenService: TokenService,
     private router: Router
   ) {
     this.cities = [
@@ -52,18 +49,17 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
       'Ibagué', 'Neiva', 'Pasto'
     ];
     
-    this.servicesList = [
-      'WiFi', 'Desayuno incluido', 'Piscina', 'Aire acondicionado', 
-      'Estacionamiento gratuito', 'Gimnasio', 'Admite mascotas', 
-      'Servicio de limpieza', 'TV por cable', 'Patio', 'Backyard'
-    ];
+    this.servicesList = this.accommodationService.getAvailableServices();
+    this.serviceDisplayNames = this.accommodationService.getServiceDisplayNames();
+    
+    console.log('🏗️ CreateAccommodation Component inicializado');
+    console.log('📋 Servicios disponibles:', this.servicesList);
     
     this.createForm();
   }
 
   ngOnInit(): void {
-    // ✅ Verificar si el usuario está autenticado usando TU servicio
-    if (!this.authService.isAuthenticated()) {
+    if (!this.tokenService.isLogged()) {
       Swal.fire({
         title: 'No autenticado',
         text: 'Debes iniciar sesión para crear alojamientos',
@@ -75,12 +71,11 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // ✅ Verificar si el usuario es HOST usando TU servicio
-    if (!this.authService.isHost()) {
-      const userInfo = this.authService.getCurrentUser();
+    const userRole = this.tokenService.getRole();
+    if (userRole !== 'HOST') {
       Swal.fire({
         title: 'Acceso denegado',
-        text: `Solo los anfitriones pueden crear alojamientos. Tu rol actual es: ${userInfo?.role || 'No definido'}`,
+        text: `Solo los anfitriones pueden crear alojamientos. Tu rol actual es: ${userRole || 'No definido'}`,
         icon: 'error',
         confirmButtonText: 'Aceptar'
       }).then(() => {
@@ -89,17 +84,9 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Mostrar información del usuario autenticado
-    const currentUser = this.authService.getCurrentUser();
-    console.log('👤 Usuario autenticado:', currentUser);
+    const userId = this.tokenService.getId();
+    console.log('👤 Usuario autenticado:', { id: userId, role: userRole });
 
-    // Verificar si el token está por expirar
-    if (this.authService.isTokenExpiringSoon()) {
-      const timeRemaining = this.authService.getTokenTimeRemaining();
-      console.warn(`⚠️ Tu sesión expirará en ${Math.floor(timeRemaining / 60)} minutos`);
-    }
-
-    // Suscribirse a los cambios de ubicación del mapa
     this.locationSubscription = this.mapService.selectedLocation$.subscribe(
       (location) => {
         if (location) {
@@ -113,14 +100,12 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Inicializar el mapa después de que la vista esté lista
     setTimeout(() => {
       this.initializeMap();
     }, 100);
   }
 
   ngOnDestroy(): void {
-    // Limpiar recursos
     if (this.locationSubscription) {
       this.locationSubscription.unsubscribe();
     }
@@ -142,22 +127,12 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private initializeMap(): void {
-    // Construir el mapa en modo interactivo
     this.mapService.buildMap('map', true);
-
-    // Centrar en Armenia por defecto
     this.mapService.setCenter(-75.6967, 4.5389);
     this.mapService.setZoom(13);
-
-    // Redimensionar después de la carga
-    setTimeout(() => {
-      this.mapService.resizeMap();
-    }, 300);
+    setTimeout(() => this.mapService.resizeMap(), 300);
   }
 
-  /**
-   * Obtener el texto formateado de las coordenadas
-   */
   getCoordinatesDisplay(): string {
     if (!this.selectedLocation) {
       return 'No se ha seleccionado ubicación';
@@ -165,9 +140,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     return `Latitud: ${this.selectedLocation.latitude}, Longitud: ${this.selectedLocation.longitude}`;
   }
 
-  /**
-   * Verificar si una ubicación ha sido seleccionada
-   */
   hasLocation(): boolean {
     return this.selectedLocation !== null;
   }
@@ -181,41 +153,40 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     const control = this.createAccommodationForm.get(field);
     if (!control || !control.errors) return '';
 
-    if (control.errors['required']) {
-      return 'Este campo es obligatorio';
-    }
-    if (control.errors['minlength']) {
-      return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
-    }
-    if (control.errors['maxlength']) {
-      return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
-    }
-    if (control.errors['min']) {
-      return `El valor mínimo es ${control.errors['min'].min}`;
-    }
-    if (control.errors['max']) {
-      return `El valor máximo es ${control.errors['max'].max}`;
-    }
-    if (control.errors['pattern']) {
-      return 'Solo se permiten números';
-    }
+    if (control.errors['required']) return 'Este campo es obligatorio';
+    if (control.errors['minlength']) return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+    if (control.errors['maxlength']) return `Máximo ${control.errors['maxlength'].requiredLength} caracteres`;
+    if (control.errors['min']) return `El valor mínimo es ${control.errors['min'].min}`;
+    if (control.errors['max']) return `El valor máximo es ${control.errors['max'].max}`;
+    if (control.errors['pattern']) return 'Solo se permiten números';
 
     return 'Campo inválido';
   }
 
-  getServiceDisplayName(service: string): string {
-    return service;
+  getServiceDisplayName(serviceEnum: string): string {
+    return this.serviceDisplayNames[serviceEnum] || serviceEnum;
   }
 
+  /**
+   * ✅ MÉTODO CRÍTICO - Manejar cambios en servicios
+   */
   onServiceChange(event: any): void {
-    const service = event.target.value;
+    const serviceEnum = event.target.value;
     const isChecked = event.target.checked;
     
+    console.log(`🔧 Servicio ${isChecked ? 'seleccionado' : 'deseleccionado'}:`, serviceEnum);
+    
     if (isChecked) {
-      this.selectedServices.push(service);
+      if (!this.selectedServices.includes(serviceEnum)) {
+        this.selectedServices.push(serviceEnum);
+      }
     } else {
-      this.selectedServices = this.selectedServices.filter(s => s !== service);
+      this.selectedServices = this.selectedServices.filter(s => s !== serviceEnum);
     }
+    
+    console.log('📋 Servicios actuales (ENUMS):', this.selectedServices);
+    console.log('🔍 Tipo:', typeof this.selectedServices);
+    console.log('🔍 Es array?:', Array.isArray(this.selectedServices));
     
     this.createAccommodationForm.patchValue({
       services: this.selectedServices
@@ -225,7 +196,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   onFileChange(event: any): void {
     const files = event.target.files;
     if (files && files.length > 0) {
-      // Validar máximo 10 imágenes
       if (files.length > 10) {
         Swal.fire({
           title: 'Demasiadas imágenes',
@@ -236,8 +206,7 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
         return;
       }
 
-      // Validar tamaño de cada archivo (máx 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      const maxSize = 5 * 1024 * 1024;
       const invalidFiles = Array.from(files).filter((file: any) => file.size > maxSize);
       
       if (invalidFiles.length > 0) {
@@ -251,176 +220,260 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.selectedFiles = Array.from(files);
-      
       this.createAccommodationForm.patchValue({
         images: this.selectedFiles
       });
     }
   }
 
-  /**
-   * Obtener el número de caracteres en la descripción
-   */
   getDescriptionLength(): number {
     const description = this.createAccommodationForm.get('description')?.value;
     return description ? description.length : 0;
   }
 
   /**
-   * Crear el alojamiento
+   * ✅ CREAR ALOJAMIENTO - VERSIÓN CON MÁXIMO LOGGING
    */
   async createAccommodation(): Promise<void> {
-    // Validar formulario
-    if (!this.createAccommodationForm.valid) {
-      this.markAllFieldsAsTouched();
-      Swal.fire({
-        title: 'Formulario incompleto',
-        text: 'Por favor completa todos los campos requeridos',
-        icon: 'warning',
-        confirmButtonText: 'Aceptar'
-      });
-      return;
-    }
+  console.log('🚀 ========================================');
+  console.log('🚀 INICIO - createAccommodation()');
+  console.log('🚀 ========================================');
 
-    // Validar ubicación
-    if (!this.selectedLocation) {
-      Swal.fire({
-        title: 'Ubicación requerida',
-        text: 'Por favor selecciona una ubicación en el mapa',
-        icon: 'warning',
-        confirmButtonText: 'Aceptar'
-      });
-      return;
-    }
+  // Validaciones
+  if (!this.createAccommodationForm.valid) {
+    this.markAllFieldsAsTouched();
+    Swal.fire({
+      title: 'Formulario incompleto',
+      text: 'Por favor completa todos los campos requeridos',
+      icon: 'warning',
+      confirmButtonText: 'Aceptar'
+    });
+    return;
+  }
 
-    // Validar imágenes
-    if (this.selectedFiles.length === 0) {
-      Swal.fire({
-        title: 'Imágenes requeridas',
-        text: 'Debes subir al menos una imagen del alojamiento',
-        icon: 'warning',
-        confirmButtonText: 'Aceptar'
-      });
-      return;
-    }
+  if (!this.selectedLocation) {
+    Swal.fire({
+      title: 'Ubicación requerida',
+      text: 'Por favor selecciona una ubicación en el mapa',
+      icon: 'warning',
+      confirmButtonText: 'Aceptar'
+    });
+    return;
+  }
 
-    // ✅ Verificar que la sesión siga activa antes de enviar
-    if (!this.authService.isAuthenticated()) {
-      Swal.fire({
-        title: 'Sesión expirada',
-        text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-        icon: 'error',
-        confirmButtonText: 'Ir al login'
-      }).then(() => {
-        this.authService.clearAuthData();
-        this.router.navigate(['/login']);
-      });
-      return;
-    }
+  if (!this.tokenService.isLogged()) {
+    Swal.fire({
+      title: 'Sesión expirada',
+      text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+      icon: 'error',
+      confirmButtonText: 'Ir al login'
+    }).then(() => {
+      this.tokenService.logout();
+      this.router.navigate(['/login']);
+    });
+    return;
+  }
 
-    this.isSubmitting = true;
+  this.isSubmitting = true;
 
-    try {
-      // Mostrar loading mientras se suben las imágenes
+  try {
+    // ✅ PASO 1: Subir imágenes
+    let images: ImageDTO[] = [];
+
+    if (this.selectedFiles.length > 0) {
+      console.log(`📸 Subiendo ${this.selectedFiles.length} imagen(es)...`);
+      
       Swal.fire({
         title: 'Subiendo imágenes...',
-        text: 'Por favor espera mientras se suben las imágenes',
+        text: `Subiendo ${this.selectedFiles.length} imagen(es) a Cloudinary`,
         allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
+        didOpen: () => Swal.showLoading()
       });
 
       this.isUploadingImages = true;
-
-      // Subir imágenes a Cloudinary
       const uploadedImages: CloudinaryResponse[] = await this.imageService.uploadMultipleImages(this.selectedFiles);
-
       this.isUploadingImages = false;
 
-      // Convertir a ImageDTO (primera imagen es la principal)
-      const images: ImageDTO[] = uploadedImages.map((img, index) => ({
+      images = uploadedImages.map((img, index) => ({
         url: img.url,
         cloudinaryId: img.cloudinaryId,
-        isMainImage: index === 0 // Primera imagen es la principal
+        isMainImage: index === 0
       }));
 
-      // Preparar datos del alojamiento
-      const formValue = this.createAccommodationForm.value;
-      const accommodationData: CreateAccommodationDTO = {
-        title: formValue.title,
-        description: formValue.description,
-        city: formValue.city,
-        address: formValue.address,
-        latitude: this.selectedLocation.latitude,
-        longitude: this.selectedLocation.longitude,
-        priceDay: parseFloat(formValue.priceDay),
-        guestsCount: parseInt(formValue.guestsCount),
-        services: this.selectedServices,
-        images: images
-      };
+      console.log('✅ Imágenes subidas:', images);
+    } else {
+      console.log('📸 No hay imágenes seleccionadas (se enviará array vacío)');
+    }
 
-      console.log('📦 Datos a enviar al backend:', accommodationData);
-      console.log('🔑 Token utilizado:', this.authService.getToken()?.substring(0, 20) + '...');
+    // ✅ PASO 2: Obtener datos COMPLETOS del usuario
+    const userId = this.tokenService.getUserId(); // ✅ Ahora es number
+    const userName = this.tokenService.getName();
+    const userEmail = this.tokenService.getEmail();
+    
+    console.log('🔑 Datos del usuario:', { 
+      id: userId, 
+      name: userName, 
+      email: userEmail 
+    });
 
-      // Enviar al backend
-      this.accommodationService.createAccommodation(accommodationData).subscribe({
-        next: (response) => {
-          this.isSubmitting = false;
+    if (!userId || userId === 0) {
+      throw new Error('No se pudo obtener el ID del usuario del token');
+    }
+
+    if (!userName) {
+      console.warn('⚠️ No se encontró el nombre del usuario en el token');
+    }
+
+    if (!userEmail) {
+      console.warn('⚠️ No se encontró el email del usuario en el token');
+    }
+
+    // ✅ PASO 3: Preparar datos del formulario
+    const formValue = this.createAccommodationForm.value;
+    
+    console.log('📝 Datos del formulario:');
+    console.log('   title:', formValue.title);
+    console.log('   description:', formValue.description);
+    console.log('   city:', formValue.city);
+    console.log('   address:', formValue.address);
+    console.log('   priceDay:', formValue.priceDay);
+    console.log('   guestsCount:', formValue.guestsCount);
+
+    // ✅ PASO 4: LOG DETALLADO DE SERVICIOS
+    console.log('🔧 ========================================');
+    console.log('🔧 SERVICIOS SELECCIONADOS - ANÁLISIS DETALLADO');
+    console.log('🔧 ========================================');
+    console.log('🔧 this.selectedServices:', this.selectedServices);
+    console.log('🔧 Tipo:', typeof this.selectedServices);
+    console.log('🔧 Es Array?:', Array.isArray(this.selectedServices));
+    console.log('🔧 Longitud:', this.selectedServices.length);
+    console.log('🔧 Cada servicio:');
+    this.selectedServices.forEach((service, index) => {
+      console.log(`   ${index}: "${service}" (tipo: ${typeof service})`);
+    });
+    console.log('🔧 JSON.stringify:', JSON.stringify(this.selectedServices));
+    console.log('🔧 ========================================');
+
+    // ✅ PASO 5: Crear DTO EXACTO con HostDTO completo
+    const accommodationData: CreateAccommodationDTO = {
+      host: {
+        id: userId,        // ✅ number
+        name: userName || "Anfitrión SnugPlace",    // ✅ string con valor por defecto
+        email: userEmail || "host@snugplace.com"   // ✅ string con valor por defecto
+      },
+      title: formValue.title,
+      description: formValue.description,
+      city: formValue.city,
+      address: formValue.address,
+      latitude: Number(this.selectedLocation.latitude),
+      longitude: Number(this.selectedLocation.longitude),
+      priceDay: Number(formValue.priceDay),
+      guestsCount: Number(formValue.guestsCount),
+      averageRating: 0.0,
+      status: "ACTIVE",
+      services: [...this.selectedServices],  // ✅ Crear nueva copia del array
+      images: images,
+      comments: []
+    };
+
+    console.log('📦 ========================================');
+    console.log('📦 DTO FINAL COMPLETO');
+    console.log('📦 ========================================');
+    console.log('📦 accommodationData:', accommodationData);
+    console.log('📦 Host object:', accommodationData.host);
+    console.log('📦 JSON completo:');
+    console.log(JSON.stringify(accommodationData, null, 2));
+    console.log('📦 ========================================');
+
+    // ✅ PASO 6: Enviar al backend
+    Swal.fire({
+      title: 'Creando alojamiento...',
+      text: 'Por favor espera',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.accommodationService.createAccommodation(accommodationData).subscribe({
+      next: (response) => {
+        this.isSubmitting = false;
+        
+        console.log('✅ ========================================');
+        console.log('✅ RESPUESTA EXITOSA DEL BACKEND');
+        console.log('✅ ========================================');
+        console.log('✅ Response:', response);
+        
+        if (response.error) {
+          throw new Error(response.content || 'Error desconocido');
+        }
+        
+        Swal.fire({
+          title: '¡Éxito!',
+          text: response.content || 'Alojamiento creado exitosamente',
+          icon: 'success',
+          confirmButtonText: 'Ver mis alojamientos'
+        }).then(() => {
+          this.resetForm();
+          this.router.navigate(['/my-places']);
+        });
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        
+        console.error('❌ ========================================');
+        console.error('❌ ERROR DEL BACKEND');
+        console.error('❌ ========================================');
+        console.error('❌ Error completo:', error);
+        console.error('❌ Status:', error.status);
+        console.error('❌ Error body:', error.error);
+        console.error('❌ Message:', error.message);
+        
+        if (error.status === 401) {
+          Swal.fire({
+            title: 'Sesión expirada',
+            text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+            icon: 'error',
+            confirmButtonText: 'Ir al login'
+          }).then(() => {
+            this.tokenService.logout();
+            this.router.navigate(['/login']);
+          });
+        } else {
+          const errorMessage = error.error?.content || error.error?.message || error.message || 'Error desconocido';
           
           Swal.fire({
-            title: '¡Éxito!',
-            text: response.content || 'Alojamiento creado exitosamente',
-            icon: 'success',
-            confirmButtonText: 'Ver mis alojamientos'
-          }).then(() => {
-            this.resetForm();
-            this.router.navigate(['/my-places']);
+            title: 'Error',
+            html: `<div style="text-align: left;">
+              <p><strong>No se pudo crear el alojamiento:</strong></p>
+              <p style="color: #d33; margin-top: 10px;">${errorMessage}</p>
+              <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                Por favor revisa la consola del navegador (F12) para más detalles.
+              </p>
+            </div>`,
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
           });
-        },
-        error: (error) => {
-          this.isSubmitting = false;
-          console.error('❌ Error al crear alojamiento:', error);
-          
-          // Manejar error de autenticación
-          if (error.status === 401) {
-            Swal.fire({
-              title: 'Sesión expirada',
-              text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-              icon: 'error',
-              confirmButtonText: 'Ir al login'
-            }).then(() => {
-              this.authService.clearAuthData();
-              this.router.navigate(['/login']);
-            });
-          } else {
-            Swal.fire({
-              title: 'Error',
-              text: error.error?.content || 'No se pudo crear el alojamiento. Por favor intenta nuevamente.',
-              icon: 'error',
-              confirmButtonText: 'Aceptar'
-            });
-          }
         }
-      });
+      }
+    });
 
-    } catch (error) {
-      this.isSubmitting = false;
-      this.isUploadingImages = false;
-      console.error('❌ Error al procesar la solicitud:', error);
-      
-      Swal.fire({
-        title: 'Error',
-        text: 'Ocurrió un error al subir las imágenes. Por favor intenta nuevamente.',
-        icon: 'error',
-        confirmButtonText: 'Aceptar'
-      });
-    }
+  } catch (error: any) {
+    this.isSubmitting = false;
+    this.isUploadingImages = false;
+    
+    console.error('❌ ========================================');
+    console.error('❌ ERROR EN CATCH');
+    console.error('❌ ========================================');
+    console.error('❌ Error:', error);
+    
+    Swal.fire({
+      title: 'Error',
+      text: error.message || 'Ocurrió un error inesperado',
+      icon: 'error',
+      confirmButtonText: 'Aceptar'
+    });
   }
+}
 
-  /**
-   * Resetear el formulario
-   */
   private resetForm(): void {
     this.createAccommodationForm.reset();
     this.selectedFiles = [];
@@ -429,9 +482,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     this.mapService.clearSelectedLocation();
   }
 
-  /**
-   * Marcar todos los campos como tocados
-   */
   private markAllFieldsAsTouched(): void {
     Object.keys(this.createAccommodationForm.controls).forEach(key => {
       const control = this.createAccommodationForm.get(key);
@@ -439,9 +489,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /**
-   * Cancelar creación
-   */
   cancelCreate(): void {
     Swal.fire({
       title: '¿Cancelar creación?',

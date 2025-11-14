@@ -54,6 +54,14 @@ export class TokenService {
     return parseInt(id) || 0;
   }
 
+  public getName(): string {
+    return this.getPayload()?.name || "";
+  }
+
+  public getEmail(): string {
+    return this.getPayload()?.email || "";
+  }
+
   public getRole(): string {
     return this.getPayload()?.role || "";
   }
