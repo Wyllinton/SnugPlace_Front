@@ -245,47 +245,64 @@ export class AccommodationService {
   // RESTO DE MÉTODOS (búsqueda, actualización, etc.)
   // ==========================================
 
-  searchFilteredAccommodations(filters: SearchFilters): Observable<ResponseListDTO<PlaceCardDTO[]>> {
-    const filterDTO = {
-      city: filters.city,
-      checkIn: filters.checkIn,
-      checkOut: filters.checkOut,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
-      guestsCount: filters.guestsCount,
-      services: filters.services,
-      page: filters.page || 0,
-      size: filters.size || 12
-    };
+  // En accommodations-service.ts, si necesitas paginación en el frontend:
+  searchFilteredAccommodations(filters: SearchFilters): Observable<any> {
+  const filterDTO = {
+    city: filters.city,
+    checkIn: filters.checkIn,
+    checkOut: filters.checkOut,
+    minPrice: filters.minPrice,
+    maxPrice: filters.maxPrice,
+    guestsCount: filters.guestsCount,
+    services: filters.services
+  };
 
-    return this.http.post<ResponseListDTO<PlaceCardDTO[]>>(`${this.apiUrl}/cards`, filterDTO)
-      .pipe(
-        map(response => {
-          const mappedData = {
-            error: response.error,
-            message: response.message,
-            data: response.data ? response.data.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              city: item.city,
-              pricePerNight: item.priceDay,
-              mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
-              averageRating: item.averageRating || 0,
-              reviewsCount: item.reviewsCount || 0
-            })) : []
-          };
-          return mappedData;
-        }),
-        catchError(error => {
-          console.error('❌ Error en búsqueda:', error);
-          return of({
-            error: true,
-            message: 'Error conectando con el servidor',
-            data: []
-          });
-        })
-      );
-  }
+  // Agregar parámetros de paginación a la URL
+  const params = new HttpParams()
+    .set('page', filters.page?.toString() || '0')
+    .set('size', filters.size?.toString() || '8');
+
+  return this.http.post<any>(`${this.apiUrl}/cards`, filterDTO, { params })
+    .pipe(
+      map(response => {
+        console.log('✅ Respuesta paginada del backend:', response);
+        
+        // Mapear los datos de la respuesta paginada
+        const mappedData = {
+          error: response.error,
+          message: response.message,
+          data: response.data.map((item: any) => ({
+            id: item.id,
+            title: item.title,
+            city: item.city,
+            pricePerNight: item.priceDay,
+            mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
+            averageRating: item.averageRating || 0,
+            reviewsCount: item.reviewsCount || 0
+          })),
+          // Información de paginación del backend
+          totalElements: response.totalElements || 0,
+          totalPages: response.totalPages || 0,
+          currentPage: response.currentPage || 0,
+          size: response.size || 8
+        };
+        
+        return mappedData;
+      }),
+      catchError(error => {
+        console.error('❌ Error en búsqueda:', error);
+        return of({
+          error: true,
+          message: 'Error conectando con el servidor',
+          data: [],
+          totalElements: 0,
+          totalPages: 0,
+          currentPage: 0,
+          size: 8
+        });
+      })
+    );
+}
 
   getAll(): Observable<ResponseListDTO<PlaceCardDTO[]>> {
     const emptyFilters: SearchFilters = { page: 0, size: 100 };

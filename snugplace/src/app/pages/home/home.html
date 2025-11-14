@@ -194,35 +194,12 @@
         </div>
 
         <!-- Paginación -->
-        @if (totalPages > 1) {
-          <div class="pagination">
-            <button 
-              class="page-btn prev" 
-              [disabled]="currentPage === 0"
-              (click)="changePage(currentPage - 1)"
-            >
-              <span class="material-symbols-rounded">chevron_left</span>
-            </button>
-
-            @for (page of getPageNumbers(); track page) {
-              <button 
-                class="page-btn" 
-                [class.active]="page === currentPage"
-                (click)="changePage(page)"
-              >
-                {{ page + 1 }}
-              </button>
-            }
-
-            <button 
-              class="page-btn next" 
-              [disabled]="currentPage === totalPages - 1"
-              (click)="changePage(currentPage + 1)"
-            >
-              <span class="material-symbols-rounded">chevron_right</span>
-            </button>
-          </div>
-        }
+        <app-pagination
+          [currentPage]="currentPage"
+          [totalPages]="totalPages"
+          [maxPagesToShow]="5"
+          (pageChange)="changePage($event)">
+        </app-pagination>
       }
 
       <!-- Estado sin resultados -->

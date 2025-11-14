@@ -8,7 +8,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/components/pagination"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

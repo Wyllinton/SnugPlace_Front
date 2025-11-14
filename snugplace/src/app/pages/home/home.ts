@@ -3,6 +3,7 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccommodationCardComponent } from '../../components/accommodation-card/accommodation-card';
+import { PaginationComponent } from '../../components/pagination/pagination'; // ✅ Importar el nuevo componente
 import { AccommodationService, SearchFilters } from '../../services/accommodations-service';
 import { PlaceCardDTO } from '../../models/place-dto';
 import { ResponseListDTO } from '../../models/response-list-dto';
@@ -22,7 +23,7 @@ interface FilterData {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule, AccommodationCardComponent],
+  imports: [RouterModule, CommonModule, FormsModule, AccommodationCardComponent, PaginationComponent], // ✅ Agregar PaginationComponent
   templateUrl: './home.html',
   styleUrl: './home.css'
 })
@@ -35,11 +36,11 @@ export class Home implements OnInit {
   loading = false;
   error: string | null = null;
   
-  // Paginación
+  // Paginación - ✅ CAMBIAR a 8 elementos por página
   currentPage = 0;
   totalPages = 0;
   totalElements = 0;
-  pageSize = 12;
+  pageSize = 8; // ✅ Cambiar de 12 a 8
   
   filters: FilterData = {
     city: null,
@@ -68,86 +69,65 @@ export class Home implements OnInit {
    * Carga los alojamientos desde el backend
    */
   loadAccommodations() {
-    console.log('🔄 Cargando alojamientos...');
-    this.loading = true;
-    this.error = null;
+  console.log('🔄 Cargando alojamientos...');
+  this.loading = true;
+  this.error = null;
 
-    // Convertir FilterData a SearchFilters
-    const searchFilters: SearchFilters = {
-      city: this.filters.city,
-      checkIn: this.filters.checkIn,
-      checkOut: this.filters.checkOut,
-      minPrice: this.filters.minPrice,
-      maxPrice: this.filters.maxPrice,
-      guestsCount: this.filters.guestsCount,
-      services: this.filters.services,
-      page: this.filters.page,
-      size: this.pageSize
-    };
+  const searchFilters: SearchFilters = {
+    city: this.filters.city,
+    checkIn: this.filters.checkIn,
+    checkOut: this.filters.checkOut,
+    minPrice: this.filters.minPrice,
+    maxPrice: this.filters.maxPrice,
+    guestsCount: this.filters.guestsCount,
+    services: this.filters.services,
+    page: this.currentPage, // ✅ Usar currentPage en lugar de filters.page
+    size: this.pageSize
+  };
 
-    console.log('🎯 Filtros aplicados:', searchFilters);
+  console.log('🎯 Filtros aplicados:', searchFilters);
 
-    this.placesService.searchFilteredAccommodations(searchFilters).subscribe({
-      next: (response: ResponseListDTO<PlaceCardDTO[]>) => {
-        console.log('✅ Respuesta recibida en componente:', response);
-        
-        if (!response.error) {
-          this.accommodations = response.data;
-          this.totalElements = response.data.length;
-          this.totalPages = Math.ceil(this.totalElements / this.pageSize);
-          console.log(`🏡 ${this.totalElements} alojamientos cargados`);
-        } else {
-          this.error = response.message || 'Error al cargar los alojamientos';
-          console.error('❌ Error en respuesta:', this.error);
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('💥 Error en suscripción:', err);
-        this.error = 'Error de conexión con el servidor.';
-        this.loading = false;
-      },
-      complete: () => {
-        console.log('✅ Carga de alojamientos completada');
-      }
-    });
-  }
-
-  /**
-   * Cambia de página en la paginación
-   */
-  changePage(page: number) {
-    console.log('📄 Cambiando a página:', page);
-    if (page >= 0 && page < this.totalPages) {
-      this.currentPage = page;
-      this.filters.page = page;
-      this.loadAccommodations();
+  this.placesService.searchFilteredAccommodations(searchFilters).subscribe({
+    next: (response: any) => {
+      console.log('✅ Respuesta paginada recibida:', response);
       
-      // Scroll hacia arriba suavemente
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!response.error) {
+        this.accommodations = response.data;
+        
+        // ✅ USAR LA INFORMACIÓN DE PAGINACIÓN DEL BACKEND
+        this.totalElements = response.totalElements || 0;
+        this.totalPages = response.totalPages || 0;
+        this.currentPage = response.currentPage || 0;
+        
+        console.log(`🏡 ${this.accommodations.length} alojamientos cargados`);
+        console.log(`📊 Página ${this.currentPage + 1} de ${this.totalPages}, Total: ${this.totalElements}`);
+        
+      } else {
+        this.error = response.message || 'Error al cargar los alojamientos';
+        console.error('❌ Error en respuesta:', this.error);
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('💥 Error en suscripción:', err);
+      this.error = 'Error de conexión con el servidor.';
+      this.loading = false;
     }
-  }
+  });
+}
 
-  /**
-   * Genera array de páginas para la paginación
-   */
-  getPageNumbers(): number[] {
-    const maxPagesToShow = 5;
-    const pages: number[] = [];
+changePage(page: number) {
+  console.log('📄 Cambiando a página:', page);
+  if (page >= 0 && page < this.totalPages) {
+    this.currentPage = page;
+    this.loadAccommodations();
     
-    let startPage = Math.max(0, this.currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(this.totalPages - 1, startPage + maxPagesToShow - 1);
-    
-    if (endPage - startPage < maxPagesToShow - 1) {
-      startPage = Math.max(0, endPage - maxPagesToShow + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    return pages;
+    // Scroll hacia arriba suavemente
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+  // ✅ ELIMINAR getPageNumbers() - Ahora está en el componente de paginación
 
   initializeDates() {
     const today = new Date().toISOString().split('T')[0];
