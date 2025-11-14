@@ -5,13 +5,15 @@
       [src]="accommodation.mainImage" 
       [alt]="accommodation.title"
       loading="lazy"
-      onerror="this.src='assets/images/placeholder.jpg'"
+      (error)="onImageError($event)"
     >
     <!-- Badge de calificación -->
-    <div class="rating-badge" *ngIf="accommodation.averageRating > 0">
-      <span class="material-symbols-rounded star-icon">star</span>
-      <span class="rating-value">{{ accommodation.averageRating | number:'1.1-1' }}</span>
-    </div>
+    @if (accommodation.averageRating > 0) {
+      <div class="rating-badge">
+        <span class="material-symbols-rounded star-icon">star</span>
+        <span class="rating-value">{{ accommodation.averageRating | number:'1.1-1' }}</span>
+      </div>
+    }
   </div>
 
   <!-- Información del alojamiento -->
@@ -26,18 +28,21 @@
     <h3 class="card-title">{{ accommodation.title }}</h3>
 
     <!-- Rating y reviews -->
-    <div class="card-rating" *ngIf="accommodation.reviewsCount > 0">
-      <div class="stars">
-        <span 
-          *ngFor="let filled of getStarsArray()" 
-          class="material-symbols-rounded star"
-          [class.filled]="filled"
-        >
-          {{ filled ? 'star' : 'star_outline' }}
-        </span>
+    @if (accommodation.reviewsCount > 0) {
+      <div class="card-rating">
+        <div class="stars">
+          @for (filled of getStarsArray(); track $index) {
+            <span 
+              class="material-symbols-rounded star"
+              [class.filled]="filled"
+            >
+              {{ filled ? 'star' : 'star_outline' }}
+            </span>
+          }
+        </div>
+        <span class="reviews-count">({{ accommodation.reviewsCount }} reseñas)</span>
       </div>
-      <span class="reviews-count">({{ accommodation.reviewsCount }} reseñas)</span>
-    </div>
+    }
 
     <!-- Precio -->
     <div class="card-price">
@@ -52,4 +57,3 @@
     <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
   </div>
 </div>
-

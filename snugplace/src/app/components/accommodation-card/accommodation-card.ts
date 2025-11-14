@@ -27,4 +27,11 @@ export class AccommodationCardComponent {
   formatPrice(price: number): string {
     return price.toLocaleString('es-CO');
   }
+
+  /**
+   * Maneja el error de carga de imagen
+   */
+  onImageError(event: any): void {
+    event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
+  }
 }

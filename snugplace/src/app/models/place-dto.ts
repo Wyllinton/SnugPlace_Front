@@ -1,13 +1,17 @@
+import { HostDTO, ImageDTO } from "./create-accommodation-dto";
+
 export interface PlaceDTO {
-    id: number;
-    title: string;
-    description: string;
-    images: string[];
-    services: string[];
-    maxGuests: number;
-    pricePerNight: number;
-    hostId: string;
-    address: AddressDTO;
+  id: number;
+  title: string;
+  description: string;
+  images: ImageDTO[];  // ✅ Cambiar a array de ImageDTO, no strings
+  services: string[];
+  guestsCount: number;  // ✅ Cambiar de maxGuests a guestsCount para coincidir con backend
+  priceDay: number;     // ✅ Cambiar de pricePerNight a priceDay para coincidir con backend
+  host: HostDTO;        // ✅ Agregar host object
+  address: AddressDTO;
+  averageRating?: number;
+  reviewsCount?: number;
 }
 
 export interface AddressDTO{

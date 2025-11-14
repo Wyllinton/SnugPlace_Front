@@ -1,150 +1,146 @@
-<div class="container pt-5 pb-5">
-    <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <h5 class="mb-0 d-flex align-items-center">
-            <span class="material-symbols-rounded filled fs-2 me-3 text-success">apartment</span>
-            Detalle del Alojamiento
-        </h5>
-        <button type="button" routerLink="/my-places" 
-                class="btn btn-success d-flex align-items-center gap-1">
-            <span class="material-symbols-rounded">arrow_back</span>
-            Volver
-        </button>
+<div class="accommodation-detail">
+  <!-- Estado de carga -->
+  @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Cargando detalles del alojamiento...</p>
     </div>
-    <hr />
+  }
 
-    @if (place) {
-        <!-- Contenido principal -->
-        <div class="row">
-            <!-- Galería de imágenes -->
-            <div class="col-lg-8 mb-4">
-                <div class="card accommodation-gallery">
-                    <div class="card-body p-0">
-                        <!-- Imagen principal -->
-                        <div class="gallery-main">
-                            <img [src]="selectedImage || place.images[0]" 
-                                 [alt]="place.title"
-                                 class="img-fluid rounded-top accommodation-main-image">
-                        </div>
-                        
-                        <!-- Miniaturas -->
-                        <div class="gallery-thumbnails p-3">
-                            <div class="row g-2">
-                                @for (image of place.images; track $index; let i = $index) {
-                                    <div class="col-auto">
-                                        <img [src]="image" 
-                                             [alt]="'Imagen ' + (i + 1) + ' de ' + place.title"
-                                             (click)="selectedImage = image"
-                                             [class.active]="selectedImage === image || (!selectedImage && i === 0)"
-                                             class="img-thumbnail thumbnail">
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Error -->
+  @if (error && !loading) {
+    <div class="error-container">
+      <span class="material-symbols-rounded error-icon">error</span>
+      <h3>Error al cargar el alojamiento</h3>
+      <p>{{ error }}</p>
+      <button class="btn-primary" (click)="loadAccommodationDetails(placeId)">Reintentar</button>
+      <button class="btn-secondary" routerLink="/home">Volver al inicio</button>
+    </div>
+  }
 
-            <!-- Información del alojamiento -->
-            <div class="col-lg-4">
-                <div class="card accommodation-info">
-                    <div class="card-body">
-                        <!-- Título y precio -->
-                        <h4 class="card-title accommodation-title">{{ place.title }}</h4>
-                        <div class="accommodation-price mb-3">
-                            <span class="h3 text-success">${{ place.pricePerNight | number }}</span>
-                            <small class="text-muted">/noche</small>
-                        </div>
-
-                        <!-- Información básica -->
-                        <div class="accommodation-meta mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="material-symbols-rounded filled me-2 text-success">location_on</span>
-                                <span class="text-muted">{{ place.address.city }}, {{ place.address.address }}</span>
-                            </div>
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="material-symbols-rounded filled me-2 text-success">group</span>
-                                <span class="text-muted">Máximo {{ place.maxGuests }} huéspedes</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="material-symbols-rounded filled me-2 text-success">person</span>
-                                <span class="text-muted">Anfitrión: {{ place.hostId }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Servicios -->
-                        <div class="accommodation-services mb-4">
-                            <h6 class="fw-semibold mb-3">Servicios incluidos</h6>
-                            <div class="row g-2">
-                                @for (service of place.services; track $index) {
-                                    <div class="col-6">
-                                        <div class="d-flex align-items-center">
-                                            <span class="material-symbols-rounded filled me-1 text-success fs-6">check_circle</span>
-                                            <small>{{ service }}</small>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-
-                        <!-- Acciones -->
-                        <div class="accommodation-actions">
-                            <div class="d-grid gap-2">
-                                <button type="button" 
-                                        [routerLink]="'/bookings/create/{{place.id}}'"
-                                        class="btn btn-success d-flex align-items-center justify-content-center gap-2">
-                                    
-                                    Reservar alojamiento
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Descripción -->
-            <div class="col-12 mt-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="fw-semibold mb-3">Descripción</h6>
-                        <p class="card-text accommodation-description">{{ place.description }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ubicación -->
-            <div class="col-12 mt-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="fw-semibold mb-3">Ubicación</h6>
-                        <div class="accommodation-location">
-                            <div class="d-flex align-items-center mb-3">
-                                <span class="material-symbols-rounded filled me-2 text-success">map</span>
-                                <span class="text-muted">{{ place.address.address }}, {{ place.address.city }}</span>
-                            </div>
-                            
-                            <!-- Mapa -->
-                            <div id="map" class="accommodation-map rounded"></div>
-                            
-                            <!-- Información de coordenadas -->
-                            <div class="mt-2 text-center text-muted">
-                                <small>
-                                    Coordenadas: {{ place.address.location.latitude | number:'1.4-4' }}, 
-                                    {{ place.address.location.longitude | number:'1.4-4' }}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <!-- Detalles del alojamiento -->
+  @if (place && !loading) {
+    <div class="detail-container">
+      <!-- Imagen simple -->
+      <section class="image-section">
+        <div class="main-image">
+          <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop" 
+               [alt]="place.title">
         </div>
-    } @else {
-        <!-- Loading state -->
-        <div class="text-center py-5">
-            <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="text-muted mt-2">Cargando información del alojamiento...</p>
+      </section>
+
+      <!-- Información principal -->
+      <section class="main-info">
+        <div class="header-section">
+          <h1 class="place-title">{{ place.title }}</h1>
+          <div class="action-buttons">
+            <button class="btn-icon" (click)="onAddToFavorites()" title="Agregar a favoritos">
+              <span class="material-symbols-rounded">favorite</span>
+            </button>
+            <button class="btn-icon" (click)="onContactHost()" title="Contactar anfitrión">
+              <span class="material-symbols-rounded">mail</span>
+            </button>
+          </div>
         </div>
-    }
+
+        <div class="location-rating">
+          <div class="location">
+            <span class="material-symbols-rounded">location_on</span>
+            <span>{{ place.address.city }}, {{ place.address.address }}</span>
+          </div>
+          
+          @if (place.averageRating && place.averageRating > 0) {
+            <div class="rating">
+              <span class="rating-star">⭐</span>
+              <span class="rating-value">{{ place.averageRating | number:'1.1-1' }}</span>
+              <span class="rating-count">
+                @if (place.reviewsCount && place.reviewsCount > 0) {
+                  ({{ place.reviewsCount }} {{ place.reviewsCount === 1 ? 'reseña' : 'reseñas' }})
+                } @else {
+                  (Sin reseñas)
+                }
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Servicios -->
+        @if (place.services && place.services.length > 0) {
+          <div class="services-section">
+            <h3>Servicios incluidos</h3>
+            <div class="services-grid">
+              @for (service of place.services; track service) {
+                <div class="service-item">
+                  <span class="material-symbols-rounded">check</span>
+                  <span>{{ getServiceDisplayName(service) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Descripción -->
+        <div class="description-section">
+          <h3>Descripción</h3>
+          <p class="description-text">{{ place.description }}</p>
+        </div>
+
+        <!-- Mapa -->
+        <div class="map-section">
+          <h3>Ubicación</h3>
+          <div id="map" class="map-container"></div>
+          <p class="map-address">
+            <strong>Dirección exacta:</strong> {{ place.address.address }}, {{ place.address.city }}
+          </p>
+        </div>
+      </section>
+
+      <!-- Sidebar de reserva -->
+      <aside class="booking-sidebar">
+        <div class="booking-card">
+          <div class="price-section">
+            <span class="price">${{ place.priceDay | number }}</span>
+            <span class="period">por noche</span>
+          </div>
+          
+          <div class="booking-info">
+            <div class="info-item">
+              <span class="label">Huéspedes máx:</span>
+              <span class="value">{{ place.guestsCount }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Calificación:</span>
+              <span class="value">
+                {{ place.averageRating || 'Nueva' }} 
+                @if (place.averageRating) {
+                  ⭐
+                }
+              </span>
+            </div>
+          </div>
+
+          <button class="btn-book" (click)="onBookNow()">
+            Reservar ahora
+          </button>
+
+          <button class="btn-contact" (click)="onContactHost()">
+            Contactar anfitrión
+          </button>
+
+          <div class="host-info">
+            <h4>Anfitrión</h4>
+            <div class="host-details">
+              <div class="host-avatar">
+                {{ place.host.name.charAt(0) }}
+              </div>
+              <div class="host-text">
+                <strong>{{ place.host.name }}</strong>
+                <span>Anfitrión verificado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  }
 </div>

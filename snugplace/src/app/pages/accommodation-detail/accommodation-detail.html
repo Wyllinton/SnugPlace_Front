@@ -26,21 +26,6 @@
                                  [alt]="place.title"
                                  class="img-fluid rounded-top accommodation-main-image">
                         </div>
-                        
-                        <!-- Miniaturas -->
-                        <div class="gallery-thumbnails p-3">
-                            <div class="row g-2">
-                                @for (image of place.images; track $index; let i = $index) {
-                                    <div class="col-auto">
-                                        <img [src]="image" 
-                                             [alt]="'Imagen ' + (i + 1) + ' de ' + place.title"
-                                             (click)="selectedImage = image"
-                                             [class.active]="selectedImage === image || (!selectedImage && i === 0)"
-                                             class="img-thumbnail thumbnail">
-                                    </div>
-                                }
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -52,7 +37,7 @@
                         <!-- Título y precio -->
                         <h4 class="card-title accommodation-title">{{ place.title }}</h4>
                         <div class="accommodation-price mb-3">
-                            <span class="h3 text-success">${{ place.pricePerNight | number }}</span>
+                            <span class="h3 text-success">${{ place.priceDay | number }}</span>
                             <small class="text-muted">/noche</small>
                         </div>
 
@@ -64,11 +49,11 @@
                             </div>
                             <div class="d-flex align-items-center mb-2">
                                 <span class="material-symbols-rounded filled me-2 text-success">group</span>
-                                <span class="text-muted">Máximo {{ place.maxGuests }} huéspedes</span>
+                                <span class="text-muted">Máximo {{ place.guestsCount }} huéspedes</span>
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="material-symbols-rounded filled me-2 text-success">person</span>
-                                <span class="text-muted">Anfitrión: {{ place.hostId }}</span>
+                                <span class="text-muted">Anfitrión: {{ place.host.id }}</span>
                             </div>
                         </div>
 

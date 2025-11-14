@@ -31,18 +31,50 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public get(placeID: string): void {
-  this.placesServices.getAccommodationById(+placeID).subscribe({
-    next: (resp) => {
-      // adjust depending on ResponseDTO shape:
-      // if ResponseDTO has `data` with the PlaceDTO:
-      this.place = (resp as any).data ?? (resp as unknown as PlaceDTO);
-      this.initializeMapWithPlaceLocation();
-    },
-    error: (err) => {
-      console.error('Failed fetching place', err);
-    }
-  });
-}
+    this.placesServices.getAccommodationById(+placeID).subscribe({
+      next: (resp) => {
+        // Tu backend retorna ResponseDTO con "content" que contiene AccommodationDTO
+        if (!resp.error && resp.content) {
+          this.place = this.mapAccommodationToPlace(resp.content);
+          console.log('✅ Alojamiento cargado:', this.place);
+          this.initializeMapWithPlaceLocation();
+        } else {
+          console.error('Error en la respuesta:', resp.content);
+          Swal.fire('Error', 'No se pudo cargar el alojamiento', 'error');
+        }
+      },
+      error: (err) => {
+        console.error('Failed fetching place', err);
+        Swal.fire('Error', 'No se pudo cargar el alojamiento', 'error');
+      }
+    });
+  }
+
+  private mapAccommodationToPlace(accommodation: any): PlaceDTO {
+    // Extraer URL de la imagen principal
+    const mainImageUrl = accommodation.mainImage?.url || '';
+    
+    return {
+      id: accommodation.id, // Asegúrate de que el DTO incluya el id
+      title: accommodation.title,
+      description: accommodation.description,
+      priceDay: accommodation.priceDay,
+      guestsCount: accommodation.guestsCount,
+      images: mainImageUrl ? [mainImageUrl] : [],
+      services: Array.from(accommodation.services || []), // Convertir Set a Array
+      address: {
+        city: accommodation.city,
+        address: accommodation.address,
+        location: {
+          latitude: accommodation.latitude,
+          longitude: accommodation.longitude
+        }
+      },
+      host: accommodation.host?.id || '',
+      averageRating: accommodation.averageRating || 0
+      // Agrega otras propiedades si tu PlaceDTO las requiere
+    };
+  }
 
   ngOnInit(): void {
     // El mapa se inicializará después de cargar los datos del lugar
@@ -56,20 +88,22 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
 }
 
   private initializeMapWithPlaceLocation(): void {
-  if (!this.place?.address?.location) return;
+    if (!this.place?.address?.location) {
+      console.warn('No hay ubicación para mostrar en el mapa');
+      return;
+    }
 
-  const { longitude, latitude } = this.place.address.location;
+    const { longitude, latitude } = this.place.address.location;
+    console.log('📍 Inicializando mapa en:', latitude, longitude);
 
-  // ✅ Crear mapa solo cuando el contenedor esté disponible
-  this.mapService.buildMap('map');
+    this.mapService.buildMap('map');
 
-  // Espera a que el mapa cargue antes de centrar
-  setTimeout(() => {
-    this.mapService.setCenter(longitude, latitude);
-    this.mapService.setZoom(15);
-    this.mapService.addMarker(longitude, latitude, this.place?.title);
-  }, 1000);
-}
+    setTimeout(() => {
+      this.mapService.setCenter(longitude, latitude);
+      this.mapService.setZoom(15);
+      this.mapService.addMarker(longitude, latitude, this.place?.title);
+    }, 1000);
+  }
 
   private addMarkerToMap(lng: number, lat: number): void {
     // Esta función podría estar en tu MapService
@@ -96,14 +130,25 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonColor: "#dc3545",
     }).then((result) => {
       if (result.isConfirmed) {
-        this.placesServices.delete(placeId);
-        Swal.fire({
-          title: "¡Eliminado!",
-          text: "El alojamiento ha sido eliminado correctamente.",
-          icon: "success",
-          confirmButtonText: "Aceptar"
-        }).then(() => {
-          this.router.navigate(['/my-places']);
+        this.placesServices.delete(placeId).subscribe({
+          next: (response) => {
+            if (!response.error) {
+              Swal.fire({
+                title: "¡Eliminado!",
+                text: "El alojamiento ha sido eliminado correctamente.",
+                icon: "success",
+                confirmButtonText: "Aceptar"
+              }).then(() => {
+                this.router.navigate(['/my-places']);
+              });
+            } else {
+              Swal.fire('Error', response.content, 'error');
+            }
+          },
+          error: (err) => {
+            console.error('Error eliminando:', err);
+            Swal.fire('Error', 'No se pudo eliminar el alojamiento', 'error');
+          }
         });
       }
     });
