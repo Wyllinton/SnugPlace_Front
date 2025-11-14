@@ -220,11 +220,27 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
   }
 
   public onBookNow(): void {
-    Swal.fire({
-      title: 'Reservar ahora',
-      text: 'Funcionalidad de reserva en desarrollo...',
-      icon: 'info',
-      confirmButtonText: 'Entendido'
-    });
+    console.log('📅 Intentando navegar a creación de reserva...');
+    console.log('🏠 Place actual:', this.place);
+    console.log('🔢 PlaceId actual:', this.placeId);
+
+    // Usar placeId como respaldo si place es null
+    const accommodationId = this.place?.id || this.placeId;
+
+    if (!accommodationId || accommodationId === 0) {
+      console.error('❌ No se pudo obtener el ID del alojamiento');
+      Swal.fire({
+        title: 'Error',
+        text: 'No se pudo cargar la información del alojamiento. Por favor, recarga la página.',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    console.log('📍 Navegando a bookings/create con ID:', accommodationId);
+    
+    // Navegar a la página de creación de reserva
+    this.router.navigate(['/bookings/create', accommodationId]);
   }
 }
