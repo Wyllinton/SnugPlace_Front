@@ -5,107 +5,151 @@
     </h5>
     <hr />
 
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <button type="button" routerLink="/accommodations/create"
-                class="btn btn-success d-flex align-items-center justify-content-center gap-1">
-                <span class="material-symbols-rounded filled me-1">add</span>
-                Crear nuevo
-            </button>
-            
-            <!-- Botón de recargar -->
-            <button type="button" (click)="refresh()" 
-                class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-1"
-                [disabled]="isLoading">
-                <span class="material-symbols-rounded">refresh</span>
-                {{ isLoading ? 'Cargando...' : 'Recargar' }}
-            </button>
-        </div>
-
-        <!-- Estado de carga -->
-        @if (isLoading) {
-        <div class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <button type="button" routerLink="/accommodations/create"
+                    class="btn btn-success d-flex align-items-center justify-content-center gap-2">
+                    <span class="material-symbols-rounded filled">add</span>
+                    Crear nuevo alojamiento
+                </button>
+                
+                <button type="button" (click)="refresh()" 
+                    class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2"
+                    [disabled]="isLoading">
+                    <span class="material-symbols-rounded" [class.spin]="isLoading">refresh</span>
+                    {{ isLoading ? 'Cargando...' : 'Actualizar' }}
+                </button>
             </div>
-            <p class="mt-2 text-muted">Cargando tus alojamientos...</p>
         </div>
-        }
 
-        <!-- Tabla de alojamientos -->
-        @if (!isLoading) {
-        <div class="table-responsive">
-            <table class="table align-middle table-striped table-hover mb-0">
-                <thead class="text-center">
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Título</th>
-                        <th scope="col">Imagen</th>
-                        <th scope="col">Ciudad</th>
-                        <th scope="col">Dirección</th>
-                        <th scope="col">Precio/Noche</th>
-                        <th scope="col" class="text-center">Acciones</th>
-                    </tr>
-                </thead>
+        <div class="card-body p-0">
+            <!-- Estado de carga -->
+            @if (isLoading) {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="text-muted mb-0">Cargando tus alojamientos...</p>
+            </div>
+            }
 
-                <tbody class="table-group-divider">
-                    @if (places.length === 0) {
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <div class="text-muted">
-                                <span class="material-symbols-rounded filled fs-1 mb-2">apartment</span>
-                                <p class="mb-0">No tienes alojamientos registrados</p>
-                                <small>Crea tu primer alojamiento haciendo clic en "Crear nuevo"</small>
-                            </div>
-                        </td>
-                    </tr>
-                    }
-                    
-                    @for (item of places; track $index) {
-                    <tr>
-                        <td class="text-muted text-center">{{ item.id }}</td>
-                        <td class="fw-semibold">{{ item.title }}</td>
-                        <td class="text-center">
-                            @if (item.images && item.images.length > 0) {
-                            <img [src]="item.images[0]" [alt]="item.title" class="img-thumbnail rounded"
-                                style="width: 90px; height: 60px; object-fit: cover;" />
-                            } @else {
-                            <div class="img-thumbnail rounded d-flex align-items-center justify-content-center"
-                                style="width: 90px; height: 60px; background-color: #f8f9fa;">
-                                <span class="material-symbols-rounded text-muted">image</span>
-                            </div>
-                            }
-                        </td>
-                        <td>{{ item.address.city }}</td>
-                        <td>{{ item.address.address }}</td>
-                        <td class="fw-bold text-success">{{ item.priceDay | currency }}</td>
-                        <td class="text-center">
-                            <!-- Botón Ver -->
-                            <a [routerLink]="['/accommodation', item.id]" 
-                                class="btn btn-outline-primary btn-icon me-1"
-                                title="Ver detalle">
-                                <span class="material-symbols-rounded">visibility</span>
-                            </a>
+            <!-- Tabla de alojamientos -->
+            @if (!isLoading) {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" class="ps-4">ID</th>
+                            <th scope="col">Alojamiento</th>
+                            <th scope="col">Ubicación</th>
+                            <th scope="col" class="text-center">Precio/Noche</th>
+                            <th scope="col" class="text-center">Huéspedes</th>
+                            <th scope="col" class="text-center pe-4">Acciones</th>
+                        </tr>
+                    </thead>
 
-                            <!-- Botón Editar -->
-                            <a [routerLink]="['/accommodation/edit', item.id]" 
-                                class="btn btn-outline-success btn-icon me-1" 
-                                title="Editar">
-                                <span class="material-symbols-rounded">edit</span>
-                            </a>
+                    <tbody class="border-top-0">
+                        @if (places.length === 0) {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="text-muted">
+                                    <span class="material-symbols-rounded filled fs-1 mb-3 text-muted">apartment</span>
+                                    <h5 class="text-muted">No tienes alojamientos registrados</h5>
+                                    <p class="mb-0">Comienza creando tu primer alojamiento</p>
+                                    <small>Haz clic en "Crear nuevo alojamiento" para comenzar</small>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                        
+                        @for (item of places; track item.id) {
+                        <tr class="hover-shadow">
+                            <td class="ps-4">
+                                <span class="text-muted small">#{{ item.id }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="flex-shrink-0">
+                                        @if (item.images && item.images.length > 0) {
+                                        <img [src]="item.images[0]" [alt]="item.title" 
+                                             class="rounded-2 object-fit-cover"
+                                             style="width: 60px; height: 45px;">
+                                        } @else {
+                                        <div class="bg-light rounded-2 d-flex align-items-center justify-content-center"
+                                             style="width: 60px; height: 45px;">
+                                            <span class="material-symbols-rounded text-muted">image</span>
+                                        </div>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 fw-semibold text-truncate" style="max-width: 200px;">
+                                            {{ item.title }}
+                                        </h6>
+                                        <p class="mb-0 small text-muted text-truncate" style="max-width: 200px;">
+                                            {{ item.description }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <div class="fw-medium">{{ item.address.city }}</div>
+                                    <small class="text-muted">{{ item.address.address }}</small>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-bold text-success fs-6">
+                                    ${{ item.priceDay | number:'1.0-0' }}
+                                </span>
+                                <div class="small text-muted">por noche</div>
+                            </td>
+                            <td class="text-center">
+                                <span class="fw-semibold">{{ item.guestsCount }}</span>
+                                <div class="small text-muted">huéspedes</div>
+                            </td>
+                            <td class="text-center pe-4">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Botón Ver -->
+                                    <a [routerLink]="['/accommodation', item.id]" 
+                                        class="btn btn-outline-primary btn-icon rounded-start-2"
+                                        title="Ver detalle">
+                                        <span class="material-symbols-rounded">visibility</span>
+                                    </a>
 
-                            <!-- Botón Eliminar -->
-                            <button (click)="onDelete(item.id)" 
-                                type="button" 
-                                class="btn btn-outline-danger btn-icon" 
-                                title="Eliminar">
-                                <span class="material-symbols-rounded">delete</span>
-                            </button>
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-            </table>
+                                    <!-- Botón Editar -->
+                                    <a [routerLink]="['/accommodation/edit', item.id]" 
+                                        class="btn btn-outline-success btn-icon rounded-0"
+                                        title="Editar">
+                                        <span class="material-symbols-rounded">edit</span>
+                                    </a>
+
+                                    <!-- Botón Eliminar -->
+                                    <button (click)="onDelete(item.id)" 
+                                        type="button" 
+                                        class="btn btn-outline-danger btn-icon rounded-end-2"
+                                        title="Eliminar">
+                                        <span class="material-symbols-rounded">delete</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            }
+        </div>
+
+        <!-- Paginación (si la necesitas en el futuro) -->
+        @if (!isLoading && places.length > 0) {
+        <div class="card-footer bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Mostrando {{ places.length }} alojamiento(s)
+                </small>
+                <!-- Aquí puedes agregar paginación si tu backend la soporta -->
+            </div>
         </div>
         }
     </div>

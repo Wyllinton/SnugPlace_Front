@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { PlaceCardDTO, PlaceDTO } from '../../models/place-dto';
+import { PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router'; 
 import { AccommodationService } from '../../services/accommodations-service';
 import { ResponseListDTO } from '../../models/response-list-dto';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-my-places',
-  imports: [RouterModule, CurrencyPipe],
+  imports: [RouterModule, DecimalPipe],
   templateUrl: './my-places.html',
   styleUrl: './my-places.css'
 })
@@ -16,9 +16,9 @@ export class MyPlaces implements OnInit {
 
   places: PlaceDTO[] = [];
   isLoading: boolean = true;
+  errorMessage: string = '';
 
-  constructor(private placesService: AccommodationService) {
-  }
+  constructor(private placesService: AccommodationService) {}
 
   ngOnInit(): void {
     this.loadMyAccommodations();
@@ -26,45 +26,51 @@ export class MyPlaces implements OnInit {
 
   private loadMyAccommodations(): void {
     this.isLoading = true;
+    this.errorMessage = '';
+    
     this.placesService.getMyAccommodations().subscribe({
       next: (resp: ResponseListDTO<any[]>) => {
         if (!resp.error && resp.data) {
-          // Mapear la respuesta del backend a PlaceDTO
           this.places = resp.data.map(accommodation => this.mapAccommodationToPlace(accommodation));
-          console.log('✅ Alojamientos del host cargados:', this.places.length);
+          console.log('✅ Alojamientos cargados:', this.places.length);
         } else {
+          this.errorMessage = resp.message || 'Error al cargar los alojamientos';
           console.error('Error en la respuesta:', resp.message);
-          Swal.fire('Error', 'No se pudieron cargar tus alojamientos', 'error');
         }
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Error cargando alojamientos:', err);
+        this.errorMessage = 'No se pudieron cargar tus alojamientos. Intenta nuevamente.';
         this.isLoading = false;
-        Swal.fire('Error', 'No se pudieron cargar tus alojamientos', 'error');
+        Swal.fire('Error', this.errorMessage, 'error');
       }
     });
   }
 
-
   private mapAccommodationToPlace(accommodation: any): PlaceDTO {
-    // Extraer URL de la imagen principal
     const mainImageUrl = accommodation.mainImage?.url || '';
+    const images = mainImageUrl ? [mainImageUrl] : [];
     
+    // Asegurar que la descripción no sea demasiado larga
+    const description = accommodation.description && accommodation.description.length > 100 
+      ? accommodation.description.substring(0, 100) + '...' 
+      : accommodation.description;
+
     return {
       id: accommodation.id,
       title: accommodation.title,
-      description: accommodation.description,
-      priceDay: accommodation.priceDay,
-      guestsCount: accommodation.guestsCount,
-      images: mainImageUrl ? [mainImageUrl] : [],
+      description: description,
+      priceDay: accommodation.priceDay || 0,
+      guestsCount: accommodation.guestsCount || 1,
+      images: images,
       services: Array.from(accommodation.services || []),
       address: {
-        city: accommodation.city,
-        address: accommodation.address,
+        city: accommodation.city || 'Sin ciudad',
+        address: accommodation.address || 'Sin dirección',
         location: {
-          latitude: accommodation.latitude,
-          longitude: accommodation.longitude
+          latitude: accommodation.latitude || 0,
+          longitude: accommodation.longitude || 0
         }
       },
       host: accommodation.host?.id || '',
@@ -81,12 +87,12 @@ export class MyPlaces implements OnInit {
       confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
       confirmButtonColor: "#dc3545",
+      reverseButtons: true
     }).then((result) => {
       if (result.isConfirmed) {
         this.placesService.delete(placeId).subscribe({
           next: (response) => {
             if (!response.error) {
-              // Filtrar el alojamiento eliminado de la lista local
               this.places = this.places.filter(p => p.id !== placeId);
               Swal.fire({
                 title: "¡Eliminado!",
@@ -107,9 +113,13 @@ export class MyPlaces implements OnInit {
     });
   }
 
-  // Método para recargar los datos
   public refresh(): void {
     this.loadMyAccommodations();
   }
 
+  // Método para formatear la fecha si es necesario
+  formatDate(date: any): string {
+    if (!date) return 'No disponible';
+    return new Date(date).toLocaleDateString('es-ES');
+  }
 }

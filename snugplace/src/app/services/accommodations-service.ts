@@ -6,10 +6,6 @@ import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
 import { ResponseDTO } from '../models/response-dto';
 import { ResponseListDTO } from '../models/response-list-dto';
 
-// ==========================================
-// INTERFACES - ESTRUCTURA EXACTA DEL BACKEND
-// ==========================================
-
 export interface CreateAccommodationDTO {
   host: HostDTO;
   title: string;
@@ -22,7 +18,7 @@ export interface CreateAccommodationDTO {
   guestsCount: number;
   averageRating: number;
   status: string;
-  services: string[];  // ✅ ENUM values como strings: "WIFI", "PARKING", etc.
+  services: string[];
   images: ImageDTO[];
   comments?: any[];
 }
@@ -70,19 +66,6 @@ export class AccommodationService {
     console.log('🏗️ AccommodationService inicializado');
   }
 
-  // ==========================================
-  // SERVICIOS DISPONIBLES - EXACTOS DEL BACKEND
-  // ==========================================
-
-  /**
-   * ✅ ENUMS EXACTOS del backend Service.java
-   * 
-   * IMPORTANTE: Estos deben coincidir EXACTAMENTE con:
-   * public enum Service {
-   *   WIFI, AIR_CONDITIONING, PARKING, POOL, BREAKFAST,
-   *   PETS_ALLOWED, GYM, CLEANING, TV, PATIO, BACKYARD
-   * }
-   */
   public getAvailableServices(): string[] {
     return [
       'WIFI',
@@ -99,9 +82,6 @@ export class AccommodationService {
     ];
   }
 
-  /**
-   * ✅ Nombres amigables para mostrar en la UI
-   */
   public getServiceDisplayNames(): { [key: string]: string } {
     return {
       'WIFI': 'WiFi',
@@ -118,13 +98,6 @@ export class AccommodationService {
     };
   }
 
-  // ==========================================
-  // VALIDACIÓN DE SERVICIOS
-  // ==========================================
-
-  /**
-   * ✅ Validar que los servicios sean enums válidos
-   */
   private validateServices(services: string[]): { valid: boolean; invalid: string[] } {
     const validServices = this.getAvailableServices();
     const invalidServices = services.filter(s => !validServices.includes(s));
@@ -135,15 +108,11 @@ export class AccommodationService {
     };
   }
 
-  /**
-   * ✅ Crear nuevo alojamiento con validación exhaustiva
-   */
   createAccommodation(accommodationData: CreateAccommodationDTO): Observable<ResponseDTO<string>> {
     console.log('🏠 ========================================');
     console.log('🏠 INICIANDO CREACIÓN DE ALOJAMIENTO');
     console.log('🏠 ========================================');
     
-    // ✅ PASO 1: Validar servicios
     const serviceValidation = this.validateServices(accommodationData.services);
     
     if (!serviceValidation.valid) {
@@ -158,19 +127,6 @@ export class AccommodationService {
 
     console.log('✅ Servicios validados correctamente:', accommodationData.services);
 
-    // ✅ PASO 2: Log detallado del DTO
-    console.log('📦 DTO completo a enviar:');
-    console.log('   🔹 Host ID:', accommodationData.host.id);
-    console.log('   🔹 Title:', accommodationData.title);
-    console.log('   🔹 City:', accommodationData.city);
-    console.log('   🔹 Price:', accommodationData.priceDay);
-    console.log('   🔹 Guests:', accommodationData.guestsCount);
-    console.log('   🔹 Services:', accommodationData.services);
-    console.log('   🔹 Images:', accommodationData.images.length, 'imágenes');
-    console.log('   🔹 Status:', accommodationData.status);
-    console.log('   🔹 Average Rating:', accommodationData.averageRating);
-
-    // ✅ PASO 3: Preparar headers
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Accept': 'application/json'
@@ -179,12 +135,10 @@ export class AccommodationService {
     const url = `${this.apiUrl}/create`;
     console.log('📤 Enviando POST a:', url);
 
-    // ✅ PASO 4: Log del JSON exacto que se enviará
     const jsonPayload = JSON.stringify(accommodationData, null, 2);
     console.log('📄 JSON PAYLOAD:');
     console.log(jsonPayload);
 
-    // ✅ PASO 5: Enviar al backend
     return this.http.post<ResponseDTO<string>>(url, accommodationData, { headers })
       .pipe(
         tap(response => {
@@ -212,7 +166,6 @@ export class AccommodationService {
             console.error('📛 Mensaje del backend:', error.error.content || error.error.message);
           }
 
-          // ✅ Analizar el error específico
           let errorMessage = 'Error desconocido al crear alojamiento';
           
           if (error.error?.content) {
@@ -223,7 +176,6 @@ export class AccommodationService {
             errorMessage = error.message;
           }
 
-          // ✅ Error específico de servicios
           if (errorMessage.includes('services') || errorMessage.includes('Data truncated')) {
             console.error('🔴 ERROR DE SERVICIOS DETECTADO');
             console.error('🔍 Servicios enviados:', accommodationData.services);
@@ -241,68 +193,72 @@ export class AccommodationService {
       );
   }
 
-  // ==========================================
-  // RESTO DE MÉTODOS (búsqueda, actualización, etc.)
-  // ==========================================
-
-  // En accommodations-service.ts, si necesitas paginación en el frontend:
   searchFilteredAccommodations(filters: SearchFilters): Observable<any> {
-  const filterDTO = {
-    city: filters.city,
-    checkIn: filters.checkIn,
-    checkOut: filters.checkOut,
-    minPrice: filters.minPrice,
-    maxPrice: filters.maxPrice,
-    guestsCount: filters.guestsCount,
-    services: filters.services
-  };
+    const filterDTO = {
+      city: filters.city,
+      checkIn: filters.checkIn,
+      checkOut: filters.checkOut,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      guestsCount: filters.guestsCount,
+      services: filters.services
+    };
 
-  // Agregar parámetros de paginación a la URL
-  const params = new HttpParams()
-    .set('page', filters.page?.toString() || '0')
-    .set('size', filters.size?.toString() || '8');
+    const params = new HttpParams()
+      .set('page', filters.page?.toString() || '0')
+      .set('size', filters.size?.toString() || '8');
 
-  return this.http.post<any>(`${this.apiUrl}/cards`, filterDTO, { params })
-    .pipe(
-      map(response => {
-        console.log('✅ Respuesta paginada del backend:', response);
-        
-        // Mapear los datos de la respuesta paginada
-        const mappedData = {
-          error: response.error,
-          message: response.message,
-          data: response.data.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            city: item.city,
-            pricePerNight: item.priceDay,
-            mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
-            averageRating: item.averageRating || 0,
-            reviewsCount: item.reviewsCount || 0
-          })),
-          // Información de paginación del backend
-          totalElements: response.totalElements || 0,
-          totalPages: response.totalPages || 0,
-          currentPage: response.currentPage || 0,
-          size: response.size || 8
-        };
-        
-        return mappedData;
-      }),
-      catchError(error => {
-        console.error('❌ Error en búsqueda:', error);
-        return of({
-          error: true,
-          message: 'Error conectando con el servidor',
-          data: [],
-          totalElements: 0,
-          totalPages: 0,
-          currentPage: 0,
-          size: 8
-        });
-      })
-    );
-}
+    console.log('📤 Enviando POST a /cards con:', {
+      filterDTO,
+      page: filters.page,
+      size: filters.size
+    });
+
+    return this.http.post<any>(`${this.apiUrl}/cards`, filterDTO, { params })
+      .pipe(
+        tap(response => {
+          console.log('🔍 RESPUESTA BRUTA DEL BACKEND:', response);
+        }),
+        map(response => {
+          console.log('✅ Mapeando respuesta del backend...');
+          
+          const mappedData = {
+            error: response.error,
+            message: response.message,
+            data: response.data?.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              city: item.city,
+              pricePerNight: item.priceDay,
+              mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
+              averageRating: item.averageRating || 0,
+              reviewsCount: 0
+            })) || [],
+            totalElements: response.totalElements || 0,
+            totalPages: response.totalPages || 0,
+            currentPage: response.currentPage || 0,
+            size: response.size || 8
+          };
+          
+          console.log('📋 Datos mapeados para frontend:', mappedData);
+          return mappedData;
+        }),
+        catchError(error => {
+          console.error('❌ Error HTTP en búsqueda:', error);
+          console.error('❌ Error status:', error.status);
+          console.error('❌ Error message:', error.message);
+          return of({
+            error: true,
+            message: 'Error conectando con el servidor',
+            data: [],
+            totalElements: 0,
+            totalPages: 0,
+            currentPage: 0,
+            size: 8
+          });
+        })
+      );
+  }
 
   getAll(): Observable<ResponseListDTO<PlaceCardDTO[]>> {
     const emptyFilters: SearchFilters = { page: 0, size: 100 };
@@ -339,40 +295,40 @@ export class AccommodationService {
   }
 
   getAccommodationDetails(id: number): Observable<ResponseDTO<any>> {
-  console.log('📋 Obteniendo detalles del alojamiento ID:', id);
-  
-  return this.http.get<ResponseDTO<any>>(`${this.apiUrl}/${id}`)
-    .pipe(
-      map(response => {
-        console.log('✅ Detalles del alojamiento recibidos:', response);
-        return response;
-      }),
-      catchError(error => {
-        console.error('❌ Error obteniendo detalles:', error);
-        return of({
-          error: true,
-          content: 'Error obteniendo detalles del alojamiento',
-          data: null
-        } as ResponseDTO<any>);
-      })
-    );
-}
+    console.log('📋 Obteniendo detalles del alojamiento ID:', id);
+    
+    return this.http.get<ResponseDTO<any>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(response => {
+          console.log('✅ Detalles del alojamiento recibidos:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo detalles:', error);
+          return of({
+            error: true,
+            content: 'Error obteniendo detalles del alojamiento',
+            data: null
+          } as ResponseDTO<any>);
+        })
+      );
+  }
 
   private getDefaultImage(): string {
     return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
   }
 
   getMyAccommodations(page: number = 0): Observable<ResponseListDTO<any[]>> {
-  console.log('🏠 Obteniendo mis alojamientos, página:', page);
-  
-  const params = new HttpParams().set('page', page.toString());
-  
-  return this.http.get<ResponseListDTO<any[]>>(`${this.apiUrl}/my-accomodations`, { params })
-    .pipe(
-      catchError(error => {
-        console.error('❌ Error obteniendo mis alojamientos:', error);
-        throw error;
-      })
-    );
-}
+    console.log('🏠 Obteniendo mis alojamientos, página:', page);
+    
+    const params = new HttpParams().set('page', page.toString());
+    
+    return this.http.get<ResponseListDTO<any[]>>(`${this.apiUrl}/my-accomodations`, { params })
+      .pipe(
+        catchError(error => {
+          console.error('❌ Error obteniendo mis alojamientos:', error);
+          throw error;
+        })
+      );
+  }
 }

@@ -164,7 +164,7 @@
           }
         </h2>
         @if (totalElements > 0) {
-          <p class="results-count">{{ totalElements }} alojamientos encontrados</p>
+          <p class="results-count">{{ totalElements }} alojamientos encontrados - Página {{ currentPage + 1 }} de {{ totalPages }}</p>
         }
       </div>
 
@@ -193,13 +193,15 @@
           }
         </div>
 
-        <!-- Paginación -->
-        <app-pagination
-          [currentPage]="currentPage"
-          [totalPages]="totalPages"
-          [maxPagesToShow]="5"
-          (pageChange)="changePage($event)">
-        </app-pagination>
+        <!-- ✅ PAGINACIÓN - SIEMPRE MOSTRAR SI HAY MÁS DE 1 PÁGINA -->
+        @if (totalPages > 1) {
+          <app-pagination
+            [currentPage]="currentPage"
+            [totalPages]="totalPages"
+            [maxPagesToShow]="5"
+            (pageChange)="changePage($event)">
+          </app-pagination>
+        }
       }
 
       <!-- Estado sin resultados -->
