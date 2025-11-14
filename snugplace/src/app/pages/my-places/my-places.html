@@ -63,7 +63,7 @@
                         </tr>
                         }
                         
-                        @for (item of places; track item.id) {
+                        @for (item of places; track item.id || $index) {
                         <tr class="hover-shadow">
                             <td class="ps-4">
                                 <span class="text-muted small">#{{ item.id }}</span>

@@ -17,7 +17,8 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   placeId: string = "";
   place: PlaceDTO | undefined;
   selectedImage: string | null = null;
-  private mapInitialized = false; // ✅ Agregar control del mapa
+  private mapInitialized = false;
+  isLoading: boolean = true;
 
   constructor(
     private route: ActivatedRoute, 
@@ -27,16 +28,23 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   ){
     this.route.params.subscribe( (params) => {
       this.placeId = params["id"];
+      console.log('🔍 ID recibido de la ruta:', this.placeId);
       this.get(this.placeId);
     });
   }
 
   public get(placeID: string): void {
-    this.placesServices.getAccommodationById(+placeID).subscribe({
+    console.log('🔍 Iniciando carga del alojamiento ID:', placeID);
+    this.isLoading = true;
+    
+    // ✅ USAR EL MÉTODO QUE SÍ FUNCIONA - getAccommodationDetails
+    this.placesServices.getAccommodationDetails(+placeID).subscribe({
       next: (resp) => {
+        console.log('📥 Respuesta completa de getAccommodationDetails:', resp);
+        
         if (!resp.error && resp.content) {
           this.place = this.mapAccommodationToPlace(resp.content);
-          console.log('✅ Alojamiento cargado:', this.place);
+          console.log('✅ Alojamiento cargado correctamente:', this.place);
           
           // ✅ Inicializar el mapa después de un delay
           setTimeout(() => {
@@ -44,13 +52,23 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
           }, 300);
           
         } else {
-          console.error('Error en la respuesta:', resp.content);
-          Swal.fire('Error', 'No se pudo cargar el alojamiento', 'error');
+          console.error('❌ Error en la respuesta:', resp.content);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo cargar el alojamiento',
+            icon: 'error'
+          });
         }
+        this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed fetching place', err);
-        Swal.fire('Error', 'No se pudo cargar el alojamiento', 'error');
+        console.error('❌ Failed fetching place', err);
+        Swal.fire({
+          title: 'Error',
+          text: 'No se pudo cargar el alojamiento',
+          icon: 'error'
+        });
+        this.isLoading = false;
       }
     });
   }
@@ -76,7 +94,6 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
           longitude: accommodation.longitude
         }
       },
-      // ✅ CORREGIDO: Mapear el host completo como objeto, no solo el ID
       host: accommodation.host || { id: 0, name: 'Anfitrión', email: '' },
       averageRating: accommodation.averageRating || 0,
       reviewsCount: accommodation.reviewsCount || 0

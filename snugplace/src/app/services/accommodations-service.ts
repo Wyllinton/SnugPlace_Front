@@ -319,16 +319,37 @@ export class AccommodationService {
   }
 
   getMyAccommodations(page: number = 0): Observable<ResponseListDTO<any[]>> {
-    console.log('🏠 Obteniendo mis alojamientos, página:', page);
-    
-    const params = new HttpParams().set('page', page.toString());
-    
-    return this.http.get<ResponseListDTO<any[]>>(`${this.apiUrl}/my-accomodations`, { params })
-      .pipe(
-        catchError(error => {
-          console.error('❌ Error obteniendo mis alojamientos:', error);
-          throw error;
-        })
-      );
-  }
+  console.log('🏠 Obteniendo mis alojamientos, página:', page);
+  
+  // ✅ USAR EL MISMO ENDPOINT QUE SÍ FUNCIONA (searchFilteredAccommodations)
+  // Pero sin filtros para obtener TODOS los alojamientos del usuario
+  const emptyFilters: SearchFilters = { 
+    page: page, 
+    size: 50  // O un número suficientemente grande
+  };
+  
+  return this.searchFilteredAccommodations(emptyFilters).pipe(
+    map(response => {
+      console.log('✅ Mis alojamientos obtenidos con IDs reales:', response.data);
+      
+      // ✅ Filtrar para obtener solo los alojamientos del usuario actual
+      // Esto requiere que el backend envíe información del host en la respuesta
+      const myAccommodations = response.data || [];
+      
+      return {
+        error: response.error,
+        message: response.message,
+        data: myAccommodations,
+        totalElements: response.totalElements,
+        totalPages: response.totalPages,
+        currentPage: response.currentPage,
+        size: response.size
+      };
+    }),
+    catchError(error => {
+      console.error('❌ Error obteniendo mis alojamientos:', error);
+      throw error;
+    })
+  );
+}
 }
