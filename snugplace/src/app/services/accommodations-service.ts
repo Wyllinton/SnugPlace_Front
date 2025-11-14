@@ -2,16 +2,22 @@ import { Injectable } from '@angular/core';
 import { EditAccommodationDTO } from '../models/edit-accommodation-dto';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
+import { ResponseDTO } from '../models/response-dto';
+import { ResponseListDTO } from '../models/response-list-dto';
 
-
-// Interfaz para la respuesta paginada del backend
-export interface PageResponse<T> {
-  content: T[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number; // Página actual
+// Interfaces unificadas
+export interface SearchFilters {
+  city?: string | null;
+  checkIn?: string | null;
+  checkOut?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  guestsCount?: number | null;
+  services?: string[] | null;
+  page?: number;
+  size?: number;
 }
 
 export interface CreateAccommodationDTO {
@@ -33,121 +39,256 @@ export interface ImageDTO {
   isMainImage: boolean;
 }
 
-export interface AccommodationResponse {
-  error: boolean;
-  content: string;
-}
-
-// Interfaz para los filtros de búsqueda
-export interface SearchFilters {
-  city?: string | null;
-  checkIn?: string | null;
-  checkOut?: string | null;
-  minPrice?: number | null;
-  maxPrice?: number | null;
-  guestsCount?: number | null;
-  services?: string[] | null;
-  page?: number;
-  size?: number;
+export interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class PlacesService {
-  places: PlaceDTO[];
+export class AccommodationService {
   
-  // Para desarrollo - simular llamadas HTTP
+  // URL del backend
   private apiUrl = 'http://localhost:8080/accommodations';
-  private useMock = true; // Cambiar a false cuando el backend esté listo
+  
+  // Array local para compatibilidad con componentes existentes (SOLO DESARROLLO)
+  private localAccommodations: PlaceDTO[] = this.createTestAccommodations();
 
-  constructor(private http: HttpClient){
-    this.places = this.createTestPlaces();
+  constructor(private http: HttpClient) {}
+
+  // ========== MÉTODOS LOCALES (para compatibilidad - solo desarrollo) ==========
+
+  /**
+   * Obtener todos los alojamientos (local - para compatibilidad)
+   * @deprecated Usar métodos del backend en su lugar
+   */
+  public getAll(): PlaceDTO[] {
+    console.log('📋 Obteniendo todos los alojamientos (local)');
+    return this.localAccommodations;
   }
 
-  public getAll() {
-    return this.places;
-  }
-
-  public save(newPlace: PlaceDTO) {
-    newPlace.id = Math.floor(Math.random() * (5000 + 1));
-    this.places.push(newPlace);
-  }
-
+  /**
+   * Obtener un alojamiento por ID (local - para compatibilidad)
+   * @deprecated Usar getAccommodationById en su lugar
+   */
   public get(id: number): PlaceDTO | undefined {
-    return this.places.find(place => place.id == id); 
+    console.log('🔍 Buscando alojamiento local por ID:', id);
+    return this.localAccommodations.find(accommodation => accommodation.id == id);
   }
 
+  /**
+   * Guardar alojamiento (local - para compatibilidad)
+   * @deprecated Usar createAccommodation en su lugar
+   */
+  public save(newAccommodation: PlaceDTO) {
+    console.log('💾 Guardando alojamiento local:', newAccommodation.title);
+    newAccommodation.id = Math.floor(Math.random() * (5000 + 1));
+    this.localAccommodations.push(newAccommodation);
+  }
+
+  /**
+   * Eliminar alojamiento (local - para compatibilidad)
+   * @deprecated Usar deleteAccommodation en su lugar
+   */
   public delete(id: number) {
-    this.places = this.places.filter(place => place.id != id);
+    console.log('🗑️ Eliminando alojamiento local ID:', id);
+    this.localAccommodations = this.localAccommodations.filter(accommodation => accommodation.id != id);
   }
 
-  // MÉTODO ORIGINAL (mantener para compatibilidad)
-  public update(id: number, updatedPlace: PlaceDTO) {
-    const indice = this.places.findIndex(place => place.id == id);
+  /**
+   * Actualizar alojamiento (local - para compatibilidad)
+   * @deprecated Usar updateAccommodation en su lugar
+   */
+  public update(id: number, updatedAccommodation: PlaceDTO) {
+    console.log('✏️ Actualizando alojamiento local ID:', id);
+    const indice = this.localAccommodations.findIndex(accommodation => accommodation.id == id);
     if (indice != -1) {
-      this.places[indice] = updatedPlace;
+      this.localAccommodations[indice] = updatedAccommodation;
     }
   }
 
-  // NUEVO MÉTODO: Actualizar accommodation usando el DTO del backend
-  public updateAccommodation(id: number, updateData: EditAccommodationDTO): Observable<any> {
-    if (this.useMock) {
-      // Simulación para desarrollo
-      return this.updateAccommodationLocal(id, updateData);
-    } else {
-      // Implementación real para producción
-      const headers = new HttpHeaders({
-        'Content-Type': 'application/json'
-      });
-      return this.http.put(`${this.apiUrl}/${id}`, updateData, { headers });
-    }
-  }
+  // ========== MÉTODOS BACKEND (PRODUCCIÓN) ==========
 
-  // Método auxiliar para actualización local (simulación)
-  private updateAccommodationLocal(id: number, updateData: EditAccommodationDTO): Observable<any> {
-    return new Observable(observer => {
-      try {
-        const placeIndex = this.places.findIndex(place => place.id === id);
-        
-        if (placeIndex !== -1) {
-          // Actualizar el lugar existente con los nuevos datos
-          const updatedPlace: PlaceDTO = {
-            ...this.places[placeIndex],
-            title: updateData.title,
-            description: updateData.description,
-            pricePerNight: updateData.priceDay,
-            maxGuests: updateData.guestsCount,
-            services: updateData.services,
-            images: updateData.images.map(img => img.url)
+  /**
+   * Buscar alojamientos con filtros - BACKEND
+   */
+  searchFilteredAccommodations(filters: SearchFilters): Observable<ResponseListDTO<PlaceCardDTO[]>> {
+    console.log('🔍 Buscando alojamientos con filtros:', filters);
+    
+    const filterDTO = {
+      city: filters.city,
+      checkIn: filters.checkIn,
+      checkOut: filters.checkOut,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      guestsCount: filters.guestsCount,
+      services: filters.services,
+      page: filters.page || 0,
+      size: filters.size || 12
+    };
+
+    console.log('🚀 CONECTANDO AL BACKEND REAL');
+    console.log('📤 Enviando petición a:', `${this.apiUrl}/cards`);
+
+    return this.http.post<ResponseListDTO<PlaceCardDTO[]>>(`${this.apiUrl}/cards`, filterDTO)
+      .pipe(
+        map(response => {
+          console.log('✅ Respuesta del backend recibida');
+          console.log('🎉 Backend devolvió', response.data?.length || 0, 'alojamientos');
+
+          // Mapear la respuesta del backend a la estructura esperada
+          const mappedData = {
+            error: response.error,
+            message: response.message,
+            data: response.data ? response.data.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              city: item.city,
+              pricePerNight: item.priceDay,
+              mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
+              averageRating: item.averageRating || 0,
+              reviewsCount: item.reviewsCount || 0
+            })) : []
           };
           
-          this.places[placeIndex] = updatedPlace;
-          
-          observer.next({
-            success: true,
-            message: 'Alojamiento actualizado exitosamente',
-            data: updatedPlace
+          return mappedData;
+        }),
+        catchError(error => {
+          console.error('❌ ERROR llamando al backend:', error);
+          return of({
+            error: true,
+            message: 'Error conectando con el servidor: ' + (error.message || 'Desconocido'),
+            data: []
           });
-          observer.complete();
-        } else {
-          observer.error({
-            success: false,
-            message: 'Alojamiento no encontrado'
-          });
-        }
-      } catch (error) {
-        observer.error({
-          success: false,
-          message: 'Error al actualizar el alojamiento',
-          error: error
-        });
-      }
-    });
+        })
+      );
   }
 
-    /**
-   * Obtiene todos los alojamientos con paginación y filtros
+  /**
+   * Obtener un alojamiento por ID - BACKEND
+   */
+  getAccommodationById(id: number): Observable<ResponseDTO<PlaceDTO>> {
+    console.log('🔍 Obteniendo alojamiento por ID:', id);
+    
+    return this.http.get<ResponseDTO<PlaceDTO>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(response => {
+          console.log('✅ Detalles del alojamiento recibidos:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo alojamiento:', error);
+          return of({
+            error: true,
+            content: null as any
+          } as ResponseDTO<PlaceDTO>);
+        })
+      );
+  }
+
+  /**
+   * Obtener alojamientos destacados - BACKEND
+   */
+  getFeaturedAccommodations(): Observable<ResponseListDTO<PlaceCardDTO[]>> {
+    console.log('⭐ Obteniendo alojamientos destacados');
+    
+    const emptyFilters: SearchFilters = {
+      page: 0,
+      size: 12
+    };
+    return this.searchFilteredAccommodations(emptyFilters);
+  }
+
+  /**
+   * Actualizar accommodation - BACKEND
+   */
+  updateAccommodation(id: number, updateData: EditAccommodationDTO): Observable<ResponseDTO<string>> {
+    console.log('✏️ Actualizando alojamiento:', id);
+    
+    return this.http.patch<ResponseDTO<string>>(`${this.apiUrl}/edit/${id}`, updateData)
+      .pipe(
+        map(response => {
+          console.log('✅ Alojamiento actualizado:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error actualizando alojamiento:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Eliminar alojamiento - BACKEND
+   */
+  deleteAccommodation(id: number): Observable<ResponseDTO<string>> {
+    console.log('🗑️ Eliminando alojamiento:', id);
+    
+    return this.http.delete<ResponseDTO<string>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(response => {
+          console.log('✅ Alojamiento eliminado:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error eliminando alojamiento:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Verificar disponibilidad - BACKEND
+   */
+  verifyAvailability(id: number, checkIn: string, checkOut: string): Observable<any> {
+    console.log('📅 Verificando disponibilidad para alojamiento:', id);
+    
+    const params = new HttpParams()
+      .set('checkIn', checkIn)
+      .set('checkOut', checkOut);
+
+    return this.http.get(`${this.apiUrl}/${id}/availability`, { params })
+      .pipe(
+        map(response => {
+          console.log('✅ Disponibilidad verificada:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error verificando disponibilidad:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Crear nuevo alojamiento - BACKEND
+   */
+  createAccommodation(accommodationData: CreateAccommodationDTO): Observable<any> {
+    console.log('🏠 Creando nuevo alojamiento');
+    
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    return this.http.post(`${this.apiUrl}`, accommodationData, { headers })
+      .pipe(
+        map(response => {
+          console.log('✅ Alojamiento creado:', response);
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error creando alojamiento:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Buscar alojamientos con parámetros GET (alternativa)
    */
   searchAccommodations(filters: SearchFilters): Observable<PageResponse<PlaceCardDTO>> {
     let params = new HttpParams();
@@ -172,7 +313,6 @@ export class PlacesService {
       params = params.set('guestsCount', filters.guestsCount.toString());
     }
     if (filters.services && filters.services.length > 0) {
-      // Enviar servicios como parámetros múltiples
       filters.services.forEach(service => {
         params = params.append('services', service);
       });
@@ -186,24 +326,8 @@ export class PlacesService {
   }
 
   /**
-   * Obtiene un alojamiento por ID
+   * Obtener servicios disponibles
    */
-  getAccommodationById(id: number): Observable<PlaceDTO> {
-    return this.http.get<PlaceDTO>(`${this.apiUrl}/${id}`);
-  }
-
-  /**
-   * Obtiene alojamientos destacados (para mostrar en el home sin filtros)
-   */
-  getFeaturedAccommodations(page: number = 0, size: number = 12): Observable<PageResponse<PlaceCardDTO>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<PageResponse<PlaceCardDTO>>(`${this.apiUrl}/featured`, { params });
-  }
-
-  // NUEVO MÉTODO: Obtener servicios disponibles
   public getAvailableServices(): string[] {
     return [
       'WIFI',
@@ -224,7 +348,13 @@ export class PlacesService {
     ];
   }
 
-  private createTestPlaces() {
+  // Método auxiliar para obtener imagen por defecto
+  private getDefaultImage(): string {
+    return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
+  }
+
+  // Datos de prueba para desarrollo
+  private createTestAccommodations(): PlaceDTO[] {
     return [
       {
         id: 1,
@@ -264,11 +394,10 @@ export class PlacesService {
       },
       {
         id: 3,
-        title: 'Apartaestudio cerca a Uniquindio',
+        title: 'Cabaña frente al Lago',
         description: 'Relájate en una cabaña frente al lago con acceso directo al muelle.',
         images: [
-          'https://res.cloudinary.com/ddm5k1z0t/image/upload/v1760159810/app_name/k95km5l1guvyscl6byvs.png',
-          'https://example.com/images/lago2.jpg'
+          'https://res.cloudinary.com/ddm5k1z0t/image/upload/v1760159810/app_name/k95km5l1guvyscl6byvs.png'
         ],
         services: ['WIFI', 'KITCHEN', 'WORKSPACE'],
         maxGuests: 4,

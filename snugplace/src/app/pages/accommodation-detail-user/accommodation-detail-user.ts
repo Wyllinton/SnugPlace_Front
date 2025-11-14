@@ -4,7 +4,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { MapService } from '../../services/map-service';
-import { AccommodationService } from '../../services/places-service';
+import { AccommodationService } from '../../services/accommodations-service';
 
 @Component({
   selector: 'app-accommodation-detail-user',

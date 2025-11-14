@@ -3,7 +3,7 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AccommodationCardComponent } from '../../components/accommodation-card/accommodation-card';
-import { AccommodationService, SearchFilters } from '../../services/places-service';
+import { AccommodationService, SearchFilters } from '../../services/accommodations-service';
 import { PlaceCardDTO } from '../../models/place-dto';
 import { ResponseListDTO } from '../../models/response-list-dto';
 

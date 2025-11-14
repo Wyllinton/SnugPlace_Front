@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router'; 
-import { PlacesService } from '../../services/accommodations-service';
+import { AccommodationService } from '../../services/accommodations-service';
 
 @Component({
   selector: 'app-my-places',
@@ -14,7 +14,7 @@ export class MyPlaces {
 
   places: PlaceDTO[];
 
-  constructor(private placesService: PlacesService) {
+  constructor(private placesService: AccommodationService) {
     this.places = this.placesService.getAll();
   }
 

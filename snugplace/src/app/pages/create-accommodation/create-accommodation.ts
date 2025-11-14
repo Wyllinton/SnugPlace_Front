@@ -8,7 +8,7 @@ import { CreateAccommodationDTO, ImageDTO } from '../../services/accommodations-
 import { AuthService } from '../../services/auth-service'; // ✅ USANDO TU SERVICIO EXISTENTE
 import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
-import { AccommodationService } from '../../services/places-service';
+import { AccommodationService } from '../../services/accommodations-service';
 
 
 interface LocationCoordinates {
