@@ -17,6 +17,7 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   placeId: string = "";
   place: PlaceDTO | undefined;
   selectedImage: string | null = null;
+  private mapInitialized = false; // ✅ Agregar control del mapa
 
   constructor(
     private route: ActivatedRoute, 
@@ -33,11 +34,15 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   public get(placeID: string): void {
     this.placesServices.getAccommodationById(+placeID).subscribe({
       next: (resp) => {
-        // Tu backend retorna ResponseDTO con "content" que contiene AccommodationDTO
         if (!resp.error && resp.content) {
           this.place = this.mapAccommodationToPlace(resp.content);
           console.log('✅ Alojamiento cargado:', this.place);
-          this.initializeMapWithPlaceLocation();
+          
+          // ✅ Inicializar el mapa después de un delay
+          setTimeout(() => {
+            this.initializeMapWithPlaceLocation();
+          }, 300);
+          
         } else {
           console.error('Error en la respuesta:', resp.content);
           Swal.fire('Error', 'No se pudo cargar el alojamiento', 'error');
@@ -51,17 +56,18 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private mapAccommodationToPlace(accommodation: any): PlaceDTO {
-    // Extraer URL de la imagen principal
+    console.log('🗺️ Haciendo mapping de accommodation a place:', accommodation);
+    
     const mainImageUrl = accommodation.mainImage?.url || '';
     
     return {
-      id: accommodation.id, // Asegúrate de que el DTO incluya el id
+      id: accommodation.id,
       title: accommodation.title,
       description: accommodation.description,
       priceDay: accommodation.priceDay,
       guestsCount: accommodation.guestsCount,
       images: mainImageUrl ? [mainImageUrl] : [],
-      services: Array.from(accommodation.services || []), // Convertir Set a Array
+      services: Array.from(accommodation.services || []),
       address: {
         city: accommodation.city,
         address: accommodation.address,
@@ -70,9 +76,10 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
           longitude: accommodation.longitude
         }
       },
-      host: accommodation.host?.id || '',
-      averageRating: accommodation.averageRating || 0
-      // Agrega otras propiedades si tu PlaceDTO las requiere
+      // ✅ CORREGIDO: Mapear el host completo como objeto, no solo el ID
+      host: accommodation.host || { id: 0, name: 'Anfitrión', email: '' },
+      averageRating: accommodation.averageRating || 0,
+      reviewsCount: accommodation.reviewsCount || 0
     };
   }
 
@@ -81,11 +88,13 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-  // Inicializa el mapa solo después de que el DOM esté listo
-  setTimeout(() => {
-    this.initializeMapWithPlaceLocation();
-  }, 300);
-}
+    // ✅ Si los datos ya están cargados, inicializar el mapa
+    if (this.place && !this.mapInitialized) {
+      setTimeout(() => {
+        this.initializeMapWithPlaceLocation();
+      }, 300);
+    }
+  }
 
   private initializeMapWithPlaceLocation(): void {
     if (!this.place?.address?.location) {
@@ -93,30 +102,30 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    // ✅ Evitar inicializar múltiples veces
+    if (this.mapInitialized) {
+      console.log('🗺️ El mapa ya fue inicializado');
+      return;
+    }
+
     const { longitude, latitude } = this.place.address.location;
     console.log('📍 Inicializando mapa en:', latitude, longitude);
 
+    this.mapService.destroyMap();
     this.mapService.buildMap('map');
 
     setTimeout(() => {
       this.mapService.setCenter(longitude, latitude);
       this.mapService.setZoom(15);
       this.mapService.addMarker(longitude, latitude, this.place?.title);
-    }, 1000);
-  }
-
-  private addMarkerToMap(lng: number, lat: number): void {
-    // Esta función podría estar en tu MapService
-    // Por ahora la dejamos aquí como ejemplo
-    console.log(`Marcador añadido en: ${lng}, ${lat}`);
-    
-    // Si tu MapService tiene un método para agregar marcadores, lo usarías aquí:
-    // this.mapService.addMarker(lng, lat, this.place?.title);
+      this.mapInitialized = true;
+      console.log('✅ Mapa inicializado correctamente');
+    }, 500);
   }
 
   ngOnDestroy(): void {
-    // Limpiar el mapa cuando el componente se destruya
     this.mapService.destroyMap();
+    this.mapInitialized = false;
   }
 
   public onDelete(placeId: number) {

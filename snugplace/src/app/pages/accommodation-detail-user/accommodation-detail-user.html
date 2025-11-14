@@ -87,12 +87,13 @@
 
         <!-- Mapa -->
         <div class="map-section">
-          <h3>Ubicación</h3>
-          <div id="map" class="map-container"></div>
-          <p class="map-address">
-            <strong>Dirección exacta:</strong> {{ place.address.address }}, {{ place.address.city }}
-          </p>
-        </div>
+            <h3>Ubicación</h3>
+            <!-- ✅ Cambiar a la misma clase que accommodation-detail -->
+            <div id="map" class="accommodation-map rounded"></div>
+            <p class="map-address">
+                <strong>Dirección exacta:</strong> {{ place.address.address }}, {{ place.address.city }}
+            </p>
+            </div>
       </section>
 
       <!-- Sidebar de reserva -->

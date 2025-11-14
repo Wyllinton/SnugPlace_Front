@@ -18,6 +18,7 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
   place: PlaceDTO | null = null;
   loading: boolean = true;
   error: string | null = null;
+  private mapInitialized = false; // ✅ Controlar si el mapa ya fue inicializado
 
   constructor(
     private route: ActivatedRoute, 
@@ -47,16 +48,23 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     this.loading = true;
     this.error = null;
 
-    this.accommodationService.getAccommodationDetails(id).subscribe({
+    this.accommodationService.getAccommodationById(id).subscribe({
       next: (response) => {
-        console.log('✅ Respuesta del backend:', response);
+        console.log('✅ Respuesta COMPLETA del backend:', response);
         
         if (!response.error && response.content) {
-          this.place = response.content;
-          console.log('🏡 Alojamiento cargado:', this.place);
-          this.initializeMapWithPlaceLocation();
+          this.place = this.mapAccommodationToPlace(response.content);
+          console.log('🏡 Alojamiento cargado después de mapping:', this.place);
+          
+          // ✅ Inicializar el mapa después de un delay para asegurar que el DOM esté listo
+          setTimeout(() => {
+            this.initializeMapWithPlaceLocation();
+          }, 300);
+          
         } else {
-          this.error = response.content || 'Error al cargar los detalles del alojamiento';
+          this.error = typeof response.content === 'string'
+            ? response.content
+            : 'Error al cargar los detalles del alojamiento';
           console.error('❌ Error en respuesta:', this.error);
         }
         this.loading = false;
@@ -78,13 +86,51 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     });
   }
 
+  private mapAccommodationToPlace(accommodation: any): PlaceDTO {
+    console.log('🗺️ Haciendo mapping de accommodation a place:', accommodation);
+    
+    const mainImageUrl = accommodation.mainImage?.url || '';
+    
+    return {
+      id: accommodation.id,
+      title: accommodation.title,
+      description: accommodation.description,
+      priceDay: accommodation.priceDay,
+      guestsCount: accommodation.guestsCount,
+      images: mainImageUrl ? [mainImageUrl] : [],
+      services: Array.from(accommodation.services || []),
+      address: {
+        city: accommodation.city,
+        address: accommodation.address,
+        location: {
+          latitude: accommodation.latitude,
+          longitude: accommodation.longitude
+        }
+      },
+      host: accommodation.host || { id: 0, name: 'Anfitrión', email: '' },
+      averageRating: accommodation.averageRating || 0,
+      reviewsCount: accommodation.reviewsCount || 0
+    };
+  }
+
   ngAfterViewInit(): void {
-    // El mapa se inicializa después de cargar los datos
+    // ✅ Si los datos ya están cargados, inicializar el mapa
+    if (this.place && !this.mapInitialized) {
+      setTimeout(() => {
+        this.initializeMapWithPlaceLocation();
+      }, 300);
+    }
   }
 
   private initializeMapWithPlaceLocation(): void {
     if (!this.place) {
       console.warn('⚠️ No hay datos del alojamiento para inicializar el mapa');
+      return;
+    }
+
+    // ✅ Evitar inicializar múltiples veces
+    if (this.mapInitialized) {
+      console.log('🗺️ El mapa ya fue inicializado');
       return;
     }
 
@@ -95,19 +141,25 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
 
     console.log('📍 Coordenadas:', { latitude, longitude });
 
+    // ✅ Destruir mapa existente antes de crear uno nuevo
     this.mapService.destroyMap();
-    this.mapService.buildMap('map', false);
 
+    // ✅ Construir el mapa - IMPORTANTE: usar los mismos parámetros que en accommodation-detail
+    this.mapService.buildMap('map'); // ✅ Sin el segundo parámetro 'false'
+
+    // ✅ Delay para asegurar que el mapa se renderice correctamente
     setTimeout(() => {
       this.mapService.setCenter(longitude, latitude);
       this.mapService.setZoom(15);
       this.mapService.addMarker(longitude, latitude, this.place?.title || 'Alojamiento');
+      this.mapInitialized = true; // ✅ Marcar como inicializado
       console.log('✅ Mapa inicializado correctamente');
     }, 500);
   }
 
   ngOnDestroy(): void {
     this.mapService.destroyMap();
+    this.mapInitialized = false;
   }
 
   getServiceDisplayName(service: string): string {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { PlaceCardDTO, PlaceDTO } from '../models/place-dto';
@@ -134,10 +134,6 @@ export class AccommodationService {
       invalid: invalidServices
     };
   }
-
-  // ==========================================
-  // CREAR ALOJAMIENTO - VERSIÓN MEJORADA
-  // ==========================================
 
   /**
    * ✅ Crear nuevo alojamiento con validación exhaustiva
@@ -348,4 +344,18 @@ export class AccommodationService {
   private getDefaultImage(): string {
     return 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
   }
+
+  getMyAccommodations(page: number = 0): Observable<ResponseListDTO<any[]>> {
+  console.log('🏠 Obteniendo mis alojamientos, página:', page);
+  
+  const params = new HttpParams().set('page', page.toString());
+  
+  return this.http.get<ResponseListDTO<any[]>>(`${this.apiUrl}/my-accomodations`, { params })
+    .pipe(
+      catchError(error => {
+        console.error('❌ Error obteniendo mis alojamientos:', error);
+        throw error;
+      })
+    );
+}
 }

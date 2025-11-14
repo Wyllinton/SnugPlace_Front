@@ -32,6 +32,6 @@ export class AccommodationCardComponent {
    * Maneja el error de carga de imagen
    */
   onImageError(event: any): void {
-    event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=400&fit=crop';
+    event.target.src = 'https://res.cloudinary.com/ddm5k1z0t/image/upload/v1763084357/Gemini_Generated_Image_8eawas8eawas8eaw_notjjr.png';
   }
 }

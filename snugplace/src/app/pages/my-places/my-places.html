@@ -1,19 +1,39 @@
 <div class="container pt-5 pb-5">
     <h5 class="mb-0 d-flex align-items-center">
         <span class="material-symbols-rounded filled fs-2 me-3">apartment</span>
-        Gestión de alojamientos
+        Mis Alojamientos
     </h5>
     <hr />
 
     <div class="card-body">
-        <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <button type="button" routerLink="/accommodations/create"
                 class="btn btn-success d-flex align-items-center justify-content-center gap-1">
                 <span class="material-symbols-rounded filled me-1">add</span>
                 Crear nuevo
             </button>
+            
+            <!-- Botón de recargar -->
+            <button type="button" (click)="refresh()" 
+                class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-1"
+                [disabled]="isLoading">
+                <span class="material-symbols-rounded">refresh</span>
+                {{ isLoading ? 'Cargando...' : 'Recargar' }}
+            </button>
         </div>
 
+        <!-- Estado de carga -->
+        @if (isLoading) {
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Cargando tus alojamientos...</p>
+        </div>
+        }
+
+        <!-- Tabla de alojamientos -->
+        @if (!isLoading) {
         <div class="table-responsive">
             <table class="table align-middle table-striped table-hover mb-0">
                 <thead class="text-center">
@@ -23,35 +43,62 @@
                         <th scope="col">Imagen</th>
                         <th scope="col">Ciudad</th>
                         <th scope="col">Dirección</th>
+                        <th scope="col">Precio/Noche</th>
                         <th scope="col" class="text-center">Acciones</th>
                     </tr>
                 </thead>
 
                 <tbody class="table-group-divider">
+                    @if (places.length === 0) {
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="text-muted">
+                                <span class="material-symbols-rounded filled fs-1 mb-2">apartment</span>
+                                <p class="mb-0">No tienes alojamientos registrados</p>
+                                <small>Crea tu primer alojamiento haciendo clic en "Crear nuevo"</small>
+                            </div>
+                        </td>
+                    </tr>
+                    }
+                    
                     @for (item of places; track $index) {
                     <tr>
                         <td class="text-muted text-center">{{ item.id }}</td>
                         <td class="fw-semibold">{{ item.title }}</td>
                         <td class="text-center">
+                            @if (item.images && item.images.length > 0) {
                             <img [src]="item.images[0]" [alt]="item.title" class="img-thumbnail rounded"
                                 style="width: 90px; height: 60px; object-fit: cover;" />
+                            } @else {
+                            <div class="img-thumbnail rounded d-flex align-items-center justify-content-center"
+                                style="width: 90px; height: 60px; background-color: #f8f9fa;">
+                                <span class="material-symbols-rounded text-muted">image</span>
+                            </div>
+                            }
                         </td>
                         <td>{{ item.address.city }}</td>
                         <td>{{ item.address.address }}</td>
+                        <td class="fw-bold text-success">{{ item.priceDay | currency }}</td>
                         <td class="text-center">
                             <!-- Botón Ver -->
-                            <a routerLink="/accommodation/{{ item.id }}" class="btn btn-outline-primary btn-icon me-1"
+                            <a [routerLink]="['/accommodation', item.id]" 
+                                class="btn btn-outline-primary btn-icon me-1"
                                 title="Ver detalle">
                                 <span class="material-symbols-rounded">visibility</span>
                             </a>
 
                             <!-- Botón Editar -->
-                            <button routerLink="/accommodation/edit/{{ item.id }}" type="button" class="btn btn-outline-success btn-icon me-1" title="Editar">
+                            <a [routerLink]="['/accommodation/edit', item.id]" 
+                                class="btn btn-outline-success btn-icon me-1" 
+                                title="Editar">
                                 <span class="material-symbols-rounded">edit</span>
-                            </button>
+                            </a>
 
                             <!-- Botón Eliminar -->
-                            <button (click)="onDelete(item.id)" type="button" class="btn btn-outline-danger btn-icon" title="Eliminar" >
+                            <button (click)="onDelete(item.id)" 
+                                type="button" 
+                                class="btn btn-outline-danger btn-icon" 
+                                title="Eliminar">
                                 <span class="material-symbols-rounded">delete</span>
                             </button>
                         </td>
@@ -60,5 +107,6 @@
                 </tbody>
             </table>
         </div>
+        }
     </div>
 </div>
