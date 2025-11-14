@@ -221,26 +221,47 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
 
   public onBookNow(): void {
     console.log('📅 Intentando navegar a creación de reserva...');
-    console.log('🏠 Place actual:', this.place);
-    console.log('🔢 PlaceId actual:', this.placeId);
+    console.log('🔢 PlaceId:', this.placeId);
 
-    // Usar placeId como respaldo si place es null
-    const accommodationId = this.place?.id || this.placeId;
+    // ✅ VERIFICAR AUTENTICACIÓN ANTES DE NAVEGAR
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.log('🔐 Usuario no autenticado, redirigiendo a login');
+      Swal.fire({
+        title: 'Iniciar sesión requerido',
+        text: 'Debes iniciar sesión para realizar una reserva',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Iniciar sesión',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#198754',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Redirigir al login con la URL de retorno
+          this.router.navigate(['/login'], { 
+            queryParams: { 
+              returnUrl: this.router.url 
+            } 
+          });
+        }
+      });
+      return;
+    }
 
-    if (!accommodationId || accommodationId === 0) {
+    if (!this.placeId || this.placeId === 0) {
       console.error('❌ No se pudo obtener el ID del alojamiento');
       Swal.fire({
         title: 'Error',
-        text: 'No se pudo cargar la información del alojamiento. Por favor, recarga la página.',
+        text: 'No se pudo identificar el alojamiento. Por favor, recarga la página.',
         icon: 'error',
         confirmButtonText: 'Aceptar'
       });
       return;
     }
 
-    console.log('📍 Navegando a bookings/create con ID:', accommodationId);
+    console.log('📍 Navegando a bookings/create con ID:', this.placeId);
     
     // Navegar a la página de creación de reserva
-    this.router.navigate(['/bookings/create', accommodationId]);
+    this.router.navigate(['/bookings/create', this.placeId]);
   }
 }

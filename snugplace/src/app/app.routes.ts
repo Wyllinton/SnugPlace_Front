@@ -33,7 +33,7 @@ export const routes: Routes = [
     { path: 'accommodation/edit/:id', component: EditAccommodation, canActivate: [roleGuard], data: { expectedRole: 'HOST' }},
     { path: 'metrics/accommodations/:id', component: AccommodationMetric, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
     { path: 'bookings', component: Bookings },
-    { path: 'bookings/create/:id', component: CreateBooking},
+    { path: 'bookings/create/:id', component: CreateBooking }, 
     { path: 'booking/:id', component: BookingDetail },
     { path: 'comments/:AccommodationId', component: CommentsAccommodation },
     { path: "my-places", component: MyPlaces, canActivate: [roleGuard], data: { expectedRole: 'HOST' } },
