@@ -57,3 +57,32 @@
 .dropdown-item:hover {
     background-color: #f8f9fa;
 }
+
+/* Estilo para diferenciar las reservas propias de HOSTS */
+.table-info {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    border-left: 4px solid #0d6efd;
+}
+
+/* Hover effect mejorado */
+.table-info:hover {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+/* Estilos para los badges personalizados */
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
+    color: #000 !important;
+    font-size: 0.7em;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    font-size: 0.7em;
+}
+
+/* Indicadores en la columna ID */
+.text-info.fw-bold, .text-warning.fw-bold {
+    font-size: 0.75em;
+}

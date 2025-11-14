@@ -71,146 +71,259 @@
             </div>
             }
 
-            <!-- Tabla de reservas -->
             @if (!isLoading) {
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th scope="col" class="ps-4">ID</th>
-                            <th scope="col">Alojamiento</th>
-                            <th scope="col">Fechas</th>
-                            <th scope="col" class="text-center">Huéspedes</th>
-                            <th scope="col" class="text-center">Precio Total</th>
-                            <th scope="col" class="text-center">Estado</th>
-                            <th scope="col" class="text-center pe-4">Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody class="border-top-0">
-                        @if (filteredBookings.length === 0) {
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="text-muted">
-                                    <span class="material-symbols-rounded filled fs-1 mb-3 text-muted">calendar_month</span>
-                                    <h5 class="text-muted">
-                                        @if (currentFilter) {
-                                        No hay reservas {{ getStatusText(currentFilter).toLowerCase() }}
-                                        } @else {
-                                        No tienes reservas
-                                        }
-                                    </h5>
-                                    <p class="mb-0">Comienza explorando nuestros alojamientos disponibles</p>
-                                    <small>Haz clic en "Buscar Alojamientos" para comenzar</small>
-                                </div>
-                            </td>
-                        </tr>
-                        }
-                        
-                        @for (booking of filteredBookings; track booking.id || $index) {
-                        <tr class="hover-shadow">
-                             <td class="ps-4">
-                                <span class="text-muted small">#{{ booking.id }}</span>
-                                <!-- ELIMINAR esta línea que causa el error -->
-                                <!-- <br>
-                                <small class="text-muted">{{ formatDate(booking.createdAt) }}</small> -->
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="flex-shrink-0">
-                                        <div class="bg-light rounded-2 d-flex align-items-center justify-content-center"
-                                            style="width: 60px; height: 45px;">
-                                            <span class="material-symbols-rounded text-muted">apartment</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1 fw-semibold text-truncate" style="max-width: 200px;">
-                                            {{ getAccommodationTitle(booking.idAccommodation) }}
-                                        </h6>
-                                        <p class="mb-0 small text-muted">
-                                            @if (isHostView()) {
-                                            Reservado por: {{ booking.user.name }}
-                                            } @else {
-                                            {{ getAccommodationLocation(booking.idAccommodation) }}
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="small">
-                                    <div class="fw-medium">
-                                        <span class="text-success">Entrada:</span> {{ formatDate(booking.dateCheckIn) }}
-                                    </div>
-                                    <div class="text-muted">
-                                        <span class="text-primary">Salida:</span> {{ formatDate(booking.dateCheckOut) }}
-                                    </div>
-                                    <div class="text-muted mt-1">
-                                        <small>{{ getNightsCount(booking.dateCheckIn, booking.dateCheckOut) }} noches</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <span class="fw-semibold">{{ booking.guestsCount }}</span>
-                                <div class="small text-muted">huéspedes</div>
-                            </td>
-                            <td class="text-center">
-                                <span class="fw-bold text-success fs-6">
-                                    ${{ booking.price | number:'1.0-0' }}
-                                </span>
-                                <div class="small text-muted">total</div>
-                            </td>
-                            <td class="text-center">
-                                <span [class]="getStatusBadgeClass(booking.status)" class="badge">
-                                    {{ getStatusText(booking.status) }}
-                                </span>
-                                @if (isUpcomingBooking(booking.dateCheckIn) && booking.status === 'CONFIRMED') {
-                                <div class="small text-success mt-1">
-                                    <span class="material-symbols-rounded" style="font-size: 14px;">schedule</span>
-                                    Próxima
-                                </div>
+                <!-- SECCIÓN 1: PARA USUARIOS NORMALES o RESERVAS PROPIAS DE HOSTS -->
+                @if (!isHostView() || (isHostView() && getMyOwnBookings().length > 0)) {
+                <div class="border-bottom">
+                    <div class="p-4 bg-light">
+                        <h6 class="mb-0 d-flex align-items-center">
+                            <span class="material-symbols-rounded filled me-2">person</span>
+                            @if (isHostView()) {
+                                Mis Reservas en Otros Alojamientos
+                            } @else {
+                                Mis Reservas
+                            }
+                            <span class="badge bg-primary ms-2">{{ getMyOwnBookings().length }}</span>
+                        </h6>
+                    </div>
+                    
+                    @if (getMyOwnBookings().length === 0) {
+                    <div class="text-center py-5">
+                        <div class="text-muted">
+                            <span class="material-symbols-rounded filled fs-1 mb-3 text-muted">person</span>
+                            <h6 class="text-muted">
+                                @if (isHostView()) {
+                                    No tienes reservas en otros alojamientos
+                                } @else {
+                                    No tienes reservas
                                 }
-                            </td>
-                            <td class="text-center pe-4">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <!-- Botón Ver Detalles -->
-                                    <button (click)="viewBookingDetails(booking.id)" 
-                                        class="btn btn-outline-primary btn-icon rounded-start-2"
-                                        title="Ver detalle">
-                                        <span class="material-symbols-rounded">visibility</span>
-                                    </button>
+                            </h6>
+                            <p class="mb-0 small">Explora nuestros alojamientos disponibles</p>
+                        </div>
+                    </div>
+                    } @else {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">ID</th>
+                                    <th scope="col">Alojamiento</th>
+                                    <th scope="col">Fechas</th>
+                                    <th scope="col" class="text-center">Huéspedes</th>
+                                    <th scope="col" class="text-center">Precio Total</th>
+                                    <th scope="col" class="text-center">Estado</th>
+                                    <th scope="col" class="text-center pe-4">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (booking of getMyOwnBookings(); track booking.id) {
+                                <tr class="hover-shadow">
+                                    <td class="ps-4">
+                                        <span class="text-muted small">#{{ booking.id }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="flex-shrink-0">
+                                                <div class="bg-light rounded-2 d-flex align-items-center justify-content-center"
+                                                     style="width: 60px; height: 45px;">
+                                                    <span class="material-symbols-rounded text-muted">apartment</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-semibold text-truncate" style="max-width: 200px;">
+                                                    {{ getAccommodationTitle(booking.idAccommodation) }}
+                                                </h6>
+                                                <p class="mb-0 small text-muted">
+                                                    {{ getAccommodationLocation(booking.idAccommodation) }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <div class="fw-medium">
+                                                <span class="text-success">Entrada:</span> {{ formatDate(booking.dateCheckIn) }}
+                                            </div>
+                                            <div class="text-muted">
+                                                <span class="text-primary">Salida:</span> {{ formatDate(booking.dateCheckOut) }}
+                                            </div>
+                                            <div class="text-muted mt-1">
+                                                <small>{{ getNightsCount(booking.dateCheckIn, booking.dateCheckOut) }} noches</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-semibold">{{ booking.guestsCount }}</span>
+                                        <div class="small text-muted">huéspedes</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-success fs-6">
+                                            ${{ booking.price | number:'1.0-0' }}
+                                        </span>
+                                        <div class="small text-muted">total</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span [class]="getStatusBadgeClass(booking.status)" class="badge">
+                                            {{ getStatusText(booking.status) }}
+                                        </span>
+                                        @if (isUpcomingBooking(booking.dateCheckIn) && booking.status === 'CONFIRMED') {
+                                        <div class="small text-success mt-1">
+                                            <span class="material-symbols-rounded" style="font-size: 14px;">schedule</span>
+                                            Próxima
+                                        </div>
+                                        }
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button (click)="viewBookingDetails(booking.id)" 
+                                                class="btn btn-outline-primary btn-icon rounded-start-2"
+                                                title="Ver detalle">
+                                                <span class="material-symbols-rounded">visibility</span>
+                                            </button>
+                                            @if (canCancelBooking(booking.status)) {
+                                            <button (click)="cancelBooking(booking.id)" 
+                                                type="button" 
+                                                class="btn btn-outline-danger btn-icon rounded-end-2"
+                                                title="Cancelar reserva">
+                                                <span class="material-symbols-rounded">close</span>
+                                            </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    }
+                </div>
+                }
 
-                                    <!-- Acciones según estado y rol -->
-                                    @if (canCancelBooking(booking.status) && !isHostView()) {
-                                    <button (click)="cancelBooking(booking.id)" 
-                                        type="button" 
-                                        class="btn btn-outline-danger btn-icon rounded-end-2"
-                                        title="Cancelar reserva">
-                                        <span class="material-symbols-rounded">close</span>
-                                    </button>
-                                    }
+                <!-- SECCIÓN 2: SOLO PARA HOSTS - Reservas en sus propiedades -->
+                @if (isHostView() && getHostPropertyBookings().length > 0) {
+                <div>
+                    <div class="p-4 bg-light">
+                        <h6 class="mb-0 d-flex align-items-center">
+                            <span class="material-symbols-rounded filled me-2">home</span>
+                            Reservas en Mis Propiedades
+                            <span class="badge bg-warning ms-2">{{ getHostPropertyBookings().length }}</span>
+                        </h6>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="ps-4">ID</th>
+                                    <th scope="col">Alojamiento</th>
+                                    <th scope="col">Huésped</th>
+                                    <th scope="col">Fechas</th>
+                                    <th scope="col" class="text-center">Huéspedes</th>
+                                    <th scope="col" class="text-center">Precio Total</th>
+                                    <th scope="col" class="text-center">Estado</th>
+                                    <th scope="col" class="text-center pe-4">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (booking of getHostPropertyBookings(); track booking.id) {
+                                <tr class="hover-shadow">
+                                    <td class="ps-4">
+                                        <span class="text-muted small">#{{ booking.id }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="flex-shrink-0">
+                                                <div class="bg-light rounded-2 d-flex align-items-center justify-content-center"
+                                                     style="width: 60px; height: 45px;">
+                                                    <span class="material-symbols-rounded text-muted">apartment</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1 fw-semibold text-truncate" style="max-width: 200px;">
+                                                    {{ getAccommodationTitle(booking.idAccommodation) }}
+                                                </h6>
+                                                <p class="mb-0 small text-muted">
+                                                    {{ getAccommodationLocation(booking.idAccommodation) }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-medium">{{ booking.user.name }}</div>
+                                            <small class="text-muted">{{ booking.user.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="small">
+                                            <div class="fw-medium">
+                                                <span class="text-success">Entrada:</span> {{ formatDate(booking.dateCheckIn) }}
+                                            </div>
+                                            <div class="text-muted">
+                                                <span class="text-primary">Salida:</span> {{ formatDate(booking.dateCheckOut) }}
+                                            </div>
+                                            <div class="text-muted mt-1">
+                                                <small>{{ getNightsCount(booking.dateCheckIn, booking.dateCheckOut) }} noches</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-semibold">{{ booking.guestsCount }}</span>
+                                        <div class="small text-muted">huéspedes</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-success fs-6">
+                                            ${{ booking.price | number:'1.0-0' }}
+                                        </span>
+                                        <div class="small text-muted">total</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span [class]="getStatusBadgeClass(booking.status)" class="badge">
+                                            {{ getStatusText(booking.status) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center pe-4">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button (click)="viewBookingDetails(booking.id)" 
+                                                class="btn btn-outline-primary btn-icon rounded-start-2"
+                                                title="Ver detalle">
+                                                <span class="material-symbols-rounded">visibility</span>
+                                            </button>
+                                            @if (booking.status === 'PENDING') {
+                                            <button (click)="confirmBooking(booking.id)" 
+                                                type="button" 
+                                                class="btn btn-outline-success btn-icon"
+                                                title="Confirmar reserva">
+                                                <span class="material-symbols-rounded">check</span>
+                                            </button>
+                                            <button (click)="cancelBookingByHost(booking.id)" 
+                                                type="button" 
+                                                class="btn btn-outline-danger btn-icon rounded-end-2"
+                                                title="Rechazar reserva">
+                                                <span class="material-symbols-rounded">close</span>
+                                            </button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                }
 
-                                    @if (booking.status === 'PENDING' && isHostView()) {
-                                    <button (click)="confirmBooking(booking.id)" 
-                                        type="button" 
-                                        class="btn btn-outline-success btn-icon rounded-0"
-                                        title="Confirmar reserva">
-                                        <span class="material-symbols-rounded">check</span>
-                                    </button>
-                                    <button (click)="cancelBookingByHost(booking.id)" 
-                                        type="button" 
-                                        class="btn btn-outline-danger btn-icon rounded-end-2"
-                                        title="Rechazar reserva">
-                                        <span class="material-symbols-rounded">close</span>
-                                    </button>
-                                    }
-                                </div>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                <!-- Mensaje cuando no hay reservas en absoluto -->
+                @if (filteredBookings.length === 0 && !isLoading) {
+                <div class="text-center py-5">
+                    <div class="text-muted">
+                        <span class="material-symbols-rounded filled fs-1 mb-3 text-muted">calendar_month</span>
+                        <h5 class="text-muted">No tienes reservas</h5>
+                        <p class="mb-0">Comienza explorando nuestros alojamientos disponibles</p>
+                        <small>Haz clic en "Buscar Alojamientos" para comenzar</small>
+                    </div>
+                </div>
+                }
             }
         </div>
 
@@ -219,7 +332,7 @@
         <div class="card-footer bg-white border-0 py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">
-                    Mostrando {{ filteredBookings.length }} de {{ allBookings.length }} reserva(s)
+                    Total: {{ filteredBookings.length }} reserva(s)
                     @if (currentFilter) {
                     - Filtrado por: {{ getStatusText(currentFilter) }}
                     }

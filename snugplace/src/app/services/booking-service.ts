@@ -22,6 +22,7 @@ export interface BookingDTO {
   status: string;
   price: number;
   comments?: CommentDTO[];
+  isMyOwnBooking: boolean; // NUEVO CAMPO del backend
 }
 
 export interface UserResponseDTO {

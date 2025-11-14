@@ -101,7 +101,44 @@ export class MyBookings implements OnInit {
     });
   }
 
-  // FILTROS
+  // ========== MÉTODOS NUEVOS - PONER AQUÍ ==========
+
+  // Reservas que el usuario ha hecho (como huésped)
+getMyOwnBookings(): BookingDTO[] {
+  if (!this.isHostView()) {
+    // Para usuarios normales: todas sus reservas
+    return this.filteredBookings;
+  } else {
+    // Para HOSTS: solo las reservas donde isMyOwnBooking = true
+    const myBookings = this.filteredBookings.filter(booking => booking.isMyOwnBooking);
+    console.log('👤 Mis reservas como huésped (desde backend):', myBookings.length);
+    return myBookings;
+  }
+}
+
+  // Reservas que otros han hecho en propiedades del HOST
+  getHostPropertyBookings(): BookingDTO[] {
+    if (!this.isHostView()) {
+      return []; // Solo aplica para HOSTS
+    }
+    
+    // Para HOSTS: solo las reservas donde isMyOwnBooking = false
+    const hostBookings = this.filteredBookings.filter(booking => !booking.isMyOwnBooking);
+    console.log('🏠 Reservas en mis propiedades (desde backend):', hostBookings.length);
+    return hostBookings;
+  }
+
+  // Contadores para los badges
+  getMyOwnBookingsCount(): number {
+    return this.getMyOwnBookings().length;
+  }
+
+  getHostPropertyBookingsCount(): number {
+    return this.getHostPropertyBookings().length;
+  }
+
+  // ========== FILTROS ==========
+  
   filterByStatus(status: string): void {
     this.currentFilter = status;
     if (status === '') {
@@ -116,12 +153,14 @@ export class MyBookings implements OnInit {
     this.filteredBookings = [...this.allBookings];
   }
 
-  // VISTA Y ROL
+  // ========== VISTA Y ROL ==========
+  
   isHostView(): boolean {
     return this.userRole === 'HOST';
   }
 
-  // INFORMACIÓN DE ALOJAMIENTO
+  // ========== INFORMACIÓN DE ALOJAMIENTO ==========
+  
   getAccommodationTitle(accommodationId: number): string {
     return this.accommodationTitles.get(accommodationId) || 'Cargando...';
   }
@@ -130,7 +169,8 @@ export class MyBookings implements OnInit {
     return this.accommodationLocations.get(accommodationId) || '...';
   }
 
-  // ESTADOS Y BADGES
+  // ========== ESTADOS Y BADGES ==========
+  
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'PENDING':
@@ -156,7 +196,8 @@ export class MyBookings implements OnInit {
     return statusMap[status] || status;
   }
 
-  // LÓGICA DE RESERVAS
+  // ========== LÓGICA DE RESERVAS ==========
+  
   canCancelBooking(status: string): boolean {
     return status === 'PENDING' || status === 'CONFIRMED';
   }
@@ -176,7 +217,8 @@ export class MyBookings implements OnInit {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
-  // ACCIONES
+  // ========== ACCIONES ==========
+  
   viewBookingDetails(bookingId: number): void {
     console.log('🔍 Viendo detalles de reserva:', bookingId);
     
@@ -370,7 +412,8 @@ export class MyBookings implements OnInit {
     this.loadMyBookings();
   }
 
-  // FORMATEO DE FECHAS
+  // ========== FORMATEO DE FECHAS ==========
+  
   formatDate(date: string | Date): string {
     if (!date) return 'No disponible';
     return new Date(date).toLocaleDateString('es-ES');
