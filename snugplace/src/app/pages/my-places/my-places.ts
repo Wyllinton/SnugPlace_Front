@@ -70,10 +70,18 @@ export class MyPlaces implements OnInit {
 }
 
 private getMyAccommodationsWithOwnerCheck(allAccommodations: any[]): void {
-  const currentUserId = this.tokenService.getUserId(); // TEMPORAL - reemplazar con this.tokenService.getUserId()
+  const currentUserId = this.tokenService.getUserId();
   
   console.log('👤 Usuario actual ID:', currentUserId);
+  console.log('🏘️ Total de alojamientos a verificar:', allAccommodations.length);
   
+  // Si no hay alojamientos, terminar aquí
+  if (allAccommodations.length === 0) {
+    this.places = [];
+    this.isLoading = false;
+    return;
+  }
+
   // Para cada alojamiento, verificar si el usuario es el owner
   const accommodationChecks = allAccommodations.map(acc => {
     return this.placesService.getAccommodationDetails(acc.id).pipe(
@@ -85,29 +93,35 @@ private getMyAccommodationsWithOwnerCheck(allAccommodations: any[]): void {
           
           console.log(`🔍 ${acc.title} - Host ID: ${hostId}, Es owner: ${isOwner}`);
           
-          return {
-            ...acc,
-            isOwner: isOwner
-          };
+          if (isOwner) {
+            // Devolver los DETAILS completos, no solo el resumen
+            return {
+              ...accommodationDetails, // ← Usar los detalles completos
+              id: acc.id,
+              isOwner: true
+            };
+          }
         }
-        return { ...acc, isOwner: false };
+        return null; // No es del usuario
       }),
       catchError(error => {
         console.error(`Error verificando ${acc.title}:`, error);
-        return of({ ...acc, isOwner: false });
+        return of(null);
       })
     );
   });
   
   // Esperar a que todas las verificaciones terminen
   forkJoin(accommodationChecks).subscribe(results => {
-    // Filtrar solo los alojamientos del usuario
-    const myAccommodations = results.filter(acc => acc.isOwner);
+    // Filtrar solo los alojamientos del usuario (eliminar nulls)
+    const myAccommodations = results.filter(acc => acc !== null);
     
     console.log('🎯 Mis alojamientos finales:', myAccommodations);
     
-    // Mapear a PlaceDTO
-    this.places = myAccommodations.map(accommodation => this.mapAccommodationToPlace(accommodation));
+    // Mapear a PlaceDTO usando los detalles COMPLETOS
+    this.places = myAccommodations.map(accommodation => 
+      this.mapAccommodationToPlace(accommodation)
+    );
     
     this.isLoading = false;
     console.log('✅ Alojamientos cargados:', this.places.length);

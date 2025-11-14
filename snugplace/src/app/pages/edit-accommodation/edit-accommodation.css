@@ -1,4 +1,12 @@
+/* edit-accommodation.css */
 
+/* Contenedor principal - Ajustar margen superior */
+.container.pt-5.pb-5 {
+    margin-top: 80px; /* ✅ Reducido de 100px a 80px */
+    padding-top: 1rem !important; /* ✅ Reducir padding superior */
+}
+
+/* Formulario principal */
 form {
     max-width: 800px;
     margin: 0 auto;
@@ -7,7 +15,7 @@ form {
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #e9ecef;
-    margin-top: 100px;
+    margin-top: 20px; /* ✅ Reducido de 100px a 20px */
 }
 
 /* Grupos de formulario */
@@ -169,7 +177,7 @@ textarea.ng-valid.ng-touched {
     background-color: #f8fff9;
 }
 
-/* Mensajes de error (puedes agregarlos después) */
+/* Mensajes de error */
 .error-message {
     color: #dc3545;
     font-size: 0.875rem;
@@ -177,15 +185,34 @@ textarea.ng-valid.ng-touched {
     display: block;
 }
 
+/* Cards dentro del formulario */
+.card {
+    margin-bottom: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Header del formulario */
+.d-flex.align-items-center.justify-content-between.mb-4 {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container.pt-5.pb-5 {
-        margin-top: 60px;
+        margin-top: 60px; /* ✅ Ajustado para móviles */
+        padding-top: 0.5rem !important;
     }
     
     form {
         margin: 1rem;
         padding: 1.5rem;
+        margin-top: 10px; /* ✅ Menos margen en móviles */
     }
     
     .services-container {
@@ -197,17 +224,30 @@ textarea.ng-valid.ng-touched {
     textarea {
         font-size: 16px; /* Previene zoom en iOS */
     }
+
+    .card-body {
+        padding: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
+    .container.pt-5.pb-5 {
+        margin-top: 50px; /* ✅ Aún menos en pantallas muy pequeñas */
+    }
+
     form {
         margin: 0.5rem;
         padding: 1rem;
+        margin-top: 5px;
     }
     
     button[type="submit"] {
         padding: 0.875rem 1.5rem;
         font-size: 1rem;
+    }
+
+    .card-body {
+        padding: 0.75rem;
     }
 }
 
@@ -242,14 +282,70 @@ button:focus-visible {
     outline-offset: 2px;
 }
 
-/* Estados de carga (para cuando agregues) */
+/* Estados de carga */
 .loading {
     opacity: 0.7;
     pointer-events: none;
 }
 
-/* Iconos (si decides agregar material icons después) */
+/* Iconos */
 .material-icons {
     vertical-align: middle;
     margin-right: 0.5rem;
+}
+
+/* Estilos específicos para el componente de edición */
+.image-item {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s;
+}
+
+.image-item:hover {
+    background-color: #e9ecef;
+}
+
+.img-thumbnail {
+    border-radius: 0.375rem;
+}
+
+.form-check-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.material-symbols-rounded {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Estilos para los campos del formulario */
+.form-control:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.invalid-feedback.d-block {
+    display: block !important;
+}
+
+/* Ajustes adicionales para el header */
+h5.mb-0.d-flex.align-items-center {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* Si el problema persiste, agregar esto */
+:host {
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+/* Asegurar que el contenido no se superponga con header fijo */
+body {
+    padding-top: 0;
 }

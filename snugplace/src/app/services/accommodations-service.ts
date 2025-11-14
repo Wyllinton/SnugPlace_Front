@@ -35,6 +35,15 @@ export interface ImageDTO {
   isMainImage: boolean;
 }
 
+export interface UpdateAccommodationDTO {
+  title: string;
+  description: string;
+  priceDay: number;
+  guestsCount: number;
+  services: string[];
+  images: ImageDTO[];
+}
+
 export interface SearchFilters {
   city?: string | null;
   checkIn?: string | null;
@@ -278,12 +287,89 @@ export class AccommodationService {
       }));
   }
 
-  updateAccommodation(id: number, formData: FormData): Observable<ResponseDTO<string>> {
-    return this.http.patch<ResponseDTO<string>>(`${this.apiUrl}/edit/${id}`, formData)
-      .pipe(catchError(error => {
-        console.error('❌ Error actualizando:', error);
-        throw error;
-      }));
+  // En accommodations-service.ts
+  updateAccommodation(id: number, updateData: UpdateAccommodationDTO): Observable<ResponseDTO<string>> {
+    console.log('🔄 Actualizando alojamiento ID:', id);
+    console.log('📦 Datos a enviar:', updateData);
+
+    // ✅ VERIFICAR QUE EL ID SEA VÁLIDO
+    if (!id || isNaN(id)) {
+      console.error('❌ ID inválido en servicio:', id);
+      return of({
+        error: true,
+        content: 'ID de alojamiento inválido'
+      } as ResponseDTO<string>);
+    }
+
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    });
+
+    const url = `${this.apiUrl}/edit/${id}`;
+    console.log('📤 URL de actualización:', url);
+
+    return this.http.patch<ResponseDTO<string>>(url, updateData, { headers })
+      .pipe(
+        tap(response => {
+          console.log('✅ Respuesta de actualización:', response);
+        }),
+        catchError(error => {
+          console.error('❌ Error actualizando alojamiento:', error);
+          
+          let errorMessage = 'Error desconocido al actualizar alojamiento';
+          if (error.error?.content) {
+            errorMessage = error.error.content;
+          } else if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          return of({
+            error: true,
+            content: errorMessage
+          } as ResponseDTO<string>);
+        })
+      );
+  }
+
+  // Método para obtener datos del alojamiento para editar
+  getAccommodationForEdit(id: number): Observable<ResponseDTO<any>> {
+    return this.http.get<ResponseDTO<any>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map(response => {
+          if (!response.error && response.content) {
+            // Mapear la respuesta a un formato más fácil de usar en el formulario
+            const accommodation = response.content;
+            return {
+              error: false,
+              content: {
+                id: accommodation.id,
+                title: accommodation.title,
+                description: accommodation.description,
+                priceDay: accommodation.priceDay,
+                guestsCount: accommodation.guestsCount,
+                services: Array.from(accommodation.services || []),
+                images: accommodation.images || [],
+                // Mantener otros datos por si acaso
+                city: accommodation.city,
+                address: accommodation.address,
+                latitude: accommodation.latitude,
+                longitude: accommodation.longitude
+              }
+            };
+          }
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo datos para editar:', error);
+          return of({
+            error: true,
+            content: 'Error obteniendo datos del alojamiento'
+          } as ResponseDTO<any>);
+        })
+      );
   }
 
   delete(id: number): Observable<ResponseDTO<string>> {

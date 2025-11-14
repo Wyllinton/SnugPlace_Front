@@ -53,7 +53,6 @@
                             </div>
                             <div class="d-flex align-items-center">
                                 <span class="material-symbols-rounded filled me-2 text-success">person</span>
-                                <!-- ✅ CORREGIDO: Mostrar place.host.name en lugar de place.host.id -->
                                 <span class="text-muted">Anfitrión: {{ place.host.name }}</span>
                             </div>
                         </div>
@@ -77,19 +76,19 @@
                         <div class="accommodation-actions">
                             <div class="d-grid gap-2">
                                 <button type="button" 
-                                        [routerLink]="['/metrics/accommodations', place.id]"
+                                        [routerLink]="['/metrics/accommodations', getSafePlaceId()]"
                                         class="btn btn-success d-flex align-items-center justify-content-center gap-2">
                                     <span class="material-symbols-rounded">analytics</span>
                                     Métricas del Alojamiento
                                 </button>
                                 <button type="button" 
-                                        [routerLink]="['/accommodation/edit', place.id]"
+                                        [routerLink]="['/accommodation/edit', getSafePlaceId()]"
                                         class="btn btn-success d-flex align-items-center justify-content-center gap-2">
                                     <span class="material-symbols-rounded">edit</span>
                                     Editar Alojamiento
                                 </button>
                                 <button type="button" 
-                                        (click)="onDelete(place.id)"
+                                        (click)="onDelete()"
                                         class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2">
                                     <span class="material-symbols-rounded">delete</span>
                                     Eliminar Alojamiento

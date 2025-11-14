@@ -14,7 +14,7 @@ import { MapService } from '../../services/map-service';
 })
 export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
 
-  placeId: string = "";
+  placeId: number = 0; // ✅ Cambiar a number y inicializar en 0
   place: PlaceDTO | undefined;
   selectedImage: string | null = null;
   private mapInitialized = false;
@@ -27,18 +27,28 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     private mapService: MapService
   ){
     this.route.params.subscribe( (params) => {
-      this.placeId = params["id"];
-      console.log('🔍 ID recibido de la ruta:', this.placeId);
-      this.get(this.placeId);
+      const idParam = params["id"];
+      console.log('🔍 ID recibido de la ruta:', idParam);
+      
+      // ✅ CONVERSIÓN SEGURA DEL ID (igual que en edit-accommodation)
+      if (idParam && !isNaN(Number(idParam))) {
+        this.placeId = Number(idParam);
+        console.log('✅ ID válido en accommodation-detail:', this.placeId);
+        this.get(this.placeId);
+      } else {
+        console.error('❌ ID inválido en accommodation-detail:', idParam);
+        Swal.fire('Error', 'ID de alojamiento no válido', 'error');
+        this.router.navigate(['/my-places']);
+      }
     });
   }
 
-  public get(placeID: string): void {
+  public get(placeID: number): void { // ✅ Cambiar parámetro a number
     console.log('🔍 Iniciando carga del alojamiento ID:', placeID);
     this.isLoading = true;
     
-    // ✅ USAR EL MÉTODO QUE SÍ FUNCIONA - getAccommodationDetails
-    this.placesServices.getAccommodationDetails(+placeID).subscribe({
+    // ✅ USAR CONVERSIÓN SEGURA (ya viene como number)
+    this.placesServices.getAccommodationDetails(placeID).subscribe({
       next: (resp) => {
         console.log('📥 Respuesta completa de getAccommodationDetails:', resp);
         
@@ -145,7 +155,19 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     this.mapInitialized = false;
   }
 
-  public onDelete(placeId: number) {
+  public onDelete() {
+    // ✅ Ya tenemos placeId como number, no necesitamos convertir
+    const idToDelete = this.placeId;
+    
+    // ✅ Validar que el ID sea válido
+    if (!idToDelete || isNaN(idToDelete)) {
+      console.error('❌ ID inválido para eliminar:', this.placeId);
+      Swal.fire('Error', 'ID de alojamiento no válido', 'error');
+      return;
+    }
+
+    console.log('🗑️ Intentando eliminar alojamiento ID:', idToDelete);
+
     Swal.fire({
       title: "¿Estás seguro?",
       text: "Esta acción eliminará permanentemente el alojamiento.",
@@ -156,7 +178,7 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       confirmButtonColor: "#dc3545",
     }).then((result) => {
       if (result.isConfirmed) {
-        this.placesServices.delete(placeId).subscribe({
+        this.placesServices.delete(idToDelete).subscribe({
           next: (response) => {
             if (!response.error) {
               Swal.fire({
@@ -178,5 +200,10 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
         });
       }
     });
+  }
+
+  // ✅ Método para obtener el ID seguro para los botones
+  getSafePlaceId(): number {
+    return this.placeId;
   }
 }
