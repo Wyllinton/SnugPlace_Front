@@ -63,58 +63,80 @@ export class Home implements OnInit {
   }
 
   loadAccommodations() {
-    console.log('🔄 Cargando alojamientos...');
-    this.loading = true;
-    this.error = null;
+  this.debugFilterState();
+  console.log('🔄 Cargando alojamientos con filtros...', this.filters);
+  this.loading = true;
+  this.error = null;
 
-    const searchFilters: SearchFilters = {
-      city: this.filters.city,
-      checkIn: this.filters.checkIn,
-      checkOut: this.filters.checkOut,
-      minPrice: this.filters.minPrice,
-      maxPrice: this.filters.maxPrice,
-      guestsCount: this.filters.guestsCount,
-      services: this.filters.services,
-      page: this.currentPage,
-      size: this.pageSize
-    };
-
-    console.log('🎯 Filtros aplicados:', searchFilters);
-
-    this.placesService.searchFilteredAccommodations(searchFilters).subscribe({
-      next: (response: any) => {
-        console.log('✅ Respuesta COMPLETA del backend:', response);
-        
-        if (!response.error) {
-          this.accommodations = response.data;
-          
-          // ✅ FORZAR PAGINACIÓN - SIEMPRE mostrar al menos 2 páginas
-          this.totalElements = Math.max(response.totalElements || 0, 1); // Mínimo 9 elementos
-          this.totalPages = Math.max(response.totalPages || 0, 1); // Mínimo 2 páginas
-          this.currentPage = response.currentPage || 0;
-          
-          console.log('📊 ===== INFORMACIÓN DE PAGINACIÓN =====');
-          console.log('🏡 accommodations:', this.accommodations.length);
-          console.log('🔢 totalElements:', this.totalElements);
-          console.log('📄 totalPages:', this.totalPages);
-          console.log('📍 currentPage:', this.currentPage);
-          console.log('📏 pageSize:', this.pageSize);
-          console.log('📊 =====================================');
-          
-        } else {
-          this.error = response.message || 'Error al cargar los alojamientos';
-          console.error('❌ Error en respuesta:', this.error);
-        }
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('💥 Error en suscripción:', err);
-        console.error('💥 Error details:', err.error);
-        this.error = 'Error de conexión con el servidor.';
-        this.loading = false;
-      }
-    });
+  // ✅ VALIDAR: Fechas lógicas
+  if (this.filters.checkIn && this.filters.checkOut) {
+    const checkInDate = new Date(this.filters.checkIn);
+    const checkOutDate = new Date(this.filters.checkOut);
+    
+    if (checkOutDate <= checkInDate) {
+      this.error = 'La fecha de salida debe ser posterior a la de llegada';
+      this.loading = false;
+      return;
+    }
   }
+
+  const searchFilters: SearchFilters = {
+    city: this.filters.city || null,
+    checkIn: this.filters.checkIn || null,
+    checkOut: this.filters.checkOut || null,
+    minPrice: this.filters.minPrice,
+    maxPrice: this.filters.maxPrice, // ✅ Asegurar que esto no sea null
+    guestsCount: this.filters.guestsCount, // ✅ Asegurar que esto no sea null
+    services: this.filters.services.length > 0 ? this.filters.services : [],
+    page: this.currentPage,
+    size: this.pageSize
+  };
+
+  // ✅ VALIDAR que los valores numéricos no sean null/undefined
+  if (searchFilters.minPrice == null) searchFilters.minPrice = 0;
+  if (searchFilters.maxPrice == null) searchFilters.maxPrice = 1000000;
+  if (searchFilters.guestsCount == null) searchFilters.guestsCount = 1;
+
+  console.log('🎯 Filtros aplicados al servicio:', searchFilters);
+
+  this.placesService.searchFilteredAccommodations(searchFilters).subscribe({
+    next: (response: any) => {
+      console.log('✅ Respuesta del backend:', response);
+      
+      if (!response.error) {
+        this.accommodations = response.data || [];
+        
+        // ✅ USAR LOS VALORES REALES DEL BACKEND, no forzar
+        this.totalElements = response.totalElements || 0;
+        this.totalPages = response.totalPages || 0;
+        this.currentPage = response.currentPage || 0;
+        
+        console.log('📊 Información de paginación REAL:', {
+          accommodations: this.accommodations.length,
+          totalElements: this.totalElements,
+          totalPages: this.totalPages,
+          currentPage: this.currentPage
+        });
+        
+      } else {
+        this.error = response.message || 'Error al cargar los alojamientos';
+        console.error('❌ Error en respuesta:', this.error);
+        this.accommodations = [];
+        this.totalElements = 0;
+        this.totalPages = 0;
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('💥 Error en suscripción:', err);
+      this.error = 'Error de conexión con el servidor. Intenta nuevamente.';
+      this.loading = false;
+      this.accommodations = [];
+      this.totalElements = 0;
+      this.totalPages = 0;
+    }
+  });
+}
 
   changePage(page: number) {
     console.log('📄 Cambiando a página:', page);
@@ -223,18 +245,54 @@ export class Home implements OnInit {
     this.currentPage = 0;
     this.updatePriceDisplay();
     this.loadAccommodations();
+    this.closeFilters();
   }
 
   applyFilters() {
-    console.log('✅ Aplicando filtros');
-    this.currentPage = 0;
-    this.filters.page = 0;
-    this.loadAccommodations();
-    this.closeFilters();
+  console.log('✅ Aplicando filtros:', this.filters);
+  console.log('🎯 FILTROS ANTES DE ENVIAR:');
+  console.log('📍 Ciudad:', this.filters.city);
+  console.log('💰 Precio min:', this.filters.minPrice);
+  console.log('💰 Precio max:', this.filters.maxPrice);
+  console.log('👥 Huéspedes:', this.filters.guestsCount);
+  console.log('🔧 Servicios:', this.filters.services);
+  
+  // ✅ VALIDAR: Precios lógicos
+  if (this.filters.minPrice > this.filters.maxPrice) {
+    const temp = this.filters.minPrice;
+    this.filters.minPrice = this.filters.maxPrice;
+    this.filters.maxPrice = temp;
+    this.updatePriceDisplay();
   }
+  
+  this.currentPage = 0;
+  this.filters.page = 0;
+  this.loadAccommodations();
+  this.closeFilters();
+}
 
   handleSearch() {
     console.log('🔍 Ejecutando búsqueda');
     this.applyFilters();
   }
+
+  private debugFilterState() {
+  console.log('🔍 ESTADO ACTUAL DE FILTROS:');
+  console.log('📍 Ciudad:', this.filters.city);
+  console.log('📅 Check-in:', this.filters.checkIn);
+  console.log('📅 Check-out:', this.filters.checkOut);
+  console.log('💰 Precio min/max:', this.filters.minPrice, '-', this.filters.maxPrice);
+  console.log('👥 Huéspedes:', this.filters.guestsCount);
+  console.log('🔧 Servicios:', this.filters.services);
+  console.log('📄 Paginación:', this.currentPage, '/', this.totalPages);
+}
+
+hasActiveFilters(): boolean {
+  return !!this.filters.city || 
+         this.filters.guestsCount > 1 || 
+         this.filters.services.length > 0 ||
+         this.filters.minPrice > 0 || 
+         this.filters.maxPrice < 1000000;
+}
+
 }

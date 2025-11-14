@@ -203,71 +203,155 @@ export class AccommodationService {
   }
 
   searchFilteredAccommodations(filters: SearchFilters): Observable<any> {
-    const filterDTO = {
-      city: filters.city,
-      checkIn: filters.checkIn,
-      checkOut: filters.checkOut,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
-      guestsCount: filters.guestsCount,
-      services: filters.services
-    };
+  let params = new HttpParams()
+    .set('page', filters.page?.toString() || '0');
 
-    const params = new HttpParams()
-      .set('page', filters.page?.toString() || '0')
-      .set('size', filters.size?.toString() || '8');
-
-    console.log('📤 Enviando POST a /cards con:', {
-      filterDTO,
-      page: filters.page,
-      size: filters.size
-    });
-
-    return this.http.post<any>(`${this.apiUrl}/cards`, filterDTO, { params })
-      .pipe(
-        tap(response => {
-          console.log('🔍 RESPUESTA BRUTA DEL BACKEND:', response);
-        }),
-        map(response => {
-          console.log('✅ Mapeando respuesta del backend...');
-          
-          const mappedData = {
-            error: response.error,
-            message: response.message,
-            data: response.data?.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              city: item.city,
-              pricePerNight: item.priceDay,
-              mainImage: item.mainImage?.url || item.mainImage || this.getDefaultImage(),
-              averageRating: item.averageRating || 0,
-              reviewsCount: 0
-            })) || [],
-            totalElements: response.totalElements || 0,
-            totalPages: response.totalPages || 0,
-            currentPage: response.currentPage || 0,
-            size: response.size || 8
-          };
-          
-          console.log('📋 Datos mapeados para frontend:', mappedData);
-          return mappedData;
-        }),
-        catchError(error => {
-          console.error('❌ Error HTTP en búsqueda:', error);
-          console.error('❌ Error status:', error.status);
-          console.error('❌ Error message:', error.message);
-          return of({
-            error: true,
-            message: 'Error conectando con el servidor',
-            data: [],
-            totalElements: 0,
-            totalPages: 0,
-            currentPage: 0,
-            size: 8
-          });
-        })
-      );
+  // ✅ CORREGIR: Usar los nombres correctos de parámetros
+  if (filters.city) {
+    params = params.set('city', filters.city);
   }
+  if (filters.checkIn) {
+    params = params.set('checkIn', filters.checkIn);
+  }
+  if (filters.checkOut) {
+    params = params.set('checkOut', filters.checkOut);
+  }
+  if (filters.minPrice != null && filters.minPrice >= 0) {
+    params = params.set('minPrice', filters.minPrice.toString());
+  }
+  if (filters.maxPrice != null && filters.maxPrice > 0) {
+    params = params.set('maxPrice', filters.maxPrice.toString()); // ✅ CORREGIDO: era 'minPrice'
+  }
+  if (filters.guestsCount != null && filters.guestsCount > 0) {
+    params = params.set('guestsCount', filters.guestsCount.toString()); // ✅ CORREGIDO: era 'minPrice'
+  }
+  if (filters.services && filters.services.length > 0) {
+    filters.services.forEach(service => {
+      params = params.append('services', service);
+    });
+  }
+
+  console.log('🎯 PARÁMETROS ENVIADOS AL BACKEND:');
+  console.log('📍 Ciudad:', filters.city);
+  console.log('💰 Precio min:', filters.minPrice);
+  console.log('💰 Precio max:', filters.maxPrice);
+  console.log('👥 Huéspedes:', filters.guestsCount);
+  console.log('🔧 Servicios:', filters.services);
+  console.log('📄 Página:', filters.page);
+  console.log('🔗 String de parámetros:', params.toString());
+
+  return this.http.get<any>(`${this.apiUrl}`, { params })
+    .pipe(
+      tap(response => {
+        console.log('🔍 RESPUESTA BRUTA DEL BACKEND:', response);
+      console.log('🔍 ESTRUCTURA DE LOS DATOS:', {
+          tieneData: !!response.data,
+          esArray: Array.isArray(response.data),
+          longitud: response.data?.length,
+          primerElemento: response.data?.[0]
+        });
+      }),
+      map(response => {
+        console.log('✅ Mapeando respuesta paginada...');
+        
+      // ✅ VERIFICAR LA ESTRUCTURA REAL Y MAPEAR CORRECTAMENTE
+        const rawData = response.data || [];
+        console.log('📦 Datos crudos para mapear:', rawData);
+
+        const mappedData = {
+          error: response.error || false,
+          message: response.message || '',
+          data: rawData.map((item: any, index: number) => {
+            // ✅ DEBUG DETALLADO DEL PRIMER ELEMENTO
+            if (index === 0) {
+              console.log('🔎 PRIMER ELEMENTO DETALLADO:', {
+                itemCompleto: item,
+                id: item.id,
+                idTipo: typeof item.id,
+                titulo: item.title,
+                ciudad: item.city,
+                precio: item.priceDay,
+                tieneMainImage: !!item.mainImage,
+                mainImageTipo: typeof item.mainImage
+              });
+            }
+
+            const mappedItem = {
+              id: item.id, // ✅ ESTE ES EL CAMPO CRÍTICO
+              title: item.title || 'Sin título',
+              city: item.city || 'Sin ciudad',
+              pricePerNight: item.priceDay || 0,
+              mainImage: this.extractMainImage(item), // ✅ Función mejorada
+              averageRating: item.averageRating || 0,
+              reviewsCount: item.reviewsCount || 0
+            };
+
+            // ✅ VALIDACIÓN CRÍTICA DEL ID
+            if (!mappedItem.id || mappedItem.id === 'undefined' || mappedItem.id === 'null') {
+              console.error('❌ ITEM SIN ID VÁLIDO:', {
+                itemOriginal: item,
+                itemMapeado: mappedItem,
+                indice: index
+              });
+            }
+
+            return mappedItem;
+          }),
+          totalElements: response.totalElements || 0,
+          totalPages: response.totalPages || 0,
+          currentPage: response.currentPage || filters.page || 0,
+          size: response.size || 8
+        };
+
+        console.log('📋 Datos mapeados finales:', {
+          totalElementos: mappedData.data.length,
+          primerElementoMapeado: mappedData.data[0],
+          ids: mappedData.data.map((d: any) => d.id)
+        });
+
+        return mappedData;
+      }),
+      catchError(error => {
+        console.error('❌ Error HTTP en búsqueda:', error);
+        return of({
+          error: true,
+          message: 'Error conectando con el servidor',
+          data: [],
+          totalElements: 0,
+          totalPages: 0,
+          currentPage: filters.page || 0,
+          size: 8
+        });
+      })
+    );
+}
+
+  // ✅ FUNCIÓN MEJORADA PARA EXTRAER LA IMAGEN PRINCIPAL
+private extractMainImage(item: any): string {
+  // Si item.mainImage es un string, usarlo directamente
+  if (typeof item.mainImage === 'string') {
+    return item.mainImage;
+  }
+  
+  // Si item.mainImage es un objeto con propiedad url
+  if (item.mainImage && typeof item.mainImage === 'object' && item.mainImage.url) {
+    return item.mainImage.url;
+  }
+  
+  // Si hay imágenes en un array
+  if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+    const mainImage = item.images.find((img: any) => img.isMainImage);
+    if (mainImage && mainImage.url) {
+      return mainImage.url;
+    }
+    // Si no hay imagen principal, usar la primera
+    if (item.images[0].url) {
+      return item.images[0].url;
+    }
+  }
+  return this.getDefaultImage();
+}
+
 
   getAll(): Observable<ResponseListDTO<PlaceCardDTO[]>> {
     const emptyFilters: SearchFilters = { page: 0, size: 100 };
@@ -438,4 +522,5 @@ export class AccommodationService {
     })
   );
 }
+
 }
