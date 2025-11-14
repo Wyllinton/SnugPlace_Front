@@ -89,8 +89,8 @@ export class Home implements OnInit {
           this.accommodations = response.data;
           
           // ✅ FORZAR PAGINACIÓN - SIEMPRE mostrar al menos 2 páginas
-          this.totalElements = Math.max(response.totalElements || 0, 9); // Mínimo 9 elementos
-          this.totalPages = Math.max(response.totalPages || 0, 2); // Mínimo 2 páginas
+          this.totalElements = Math.max(response.totalElements || 0, 1); // Mínimo 9 elementos
+          this.totalPages = Math.max(response.totalPages || 0, 1); // Mínimo 2 páginas
           this.currentPage = response.currentPage || 0;
           
           console.log('📊 ===== INFORMACIÓN DE PAGINACIÓN =====');

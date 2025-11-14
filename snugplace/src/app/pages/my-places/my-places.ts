@@ -3,6 +3,7 @@ import { PlaceDTO } from '../../models/place-dto';
 import Swal from 'sweetalert2';
 import { RouterModule } from '@angular/router'; 
 import { AccommodationService, SearchFilters } from '../../services/accommodations-service';
+import { TokenService } from '../../services/token-service';
 import { ResponseListDTO } from '../../models/response-list-dto';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { forkJoin, of } from 'rxjs';
@@ -20,7 +21,9 @@ export class MyPlaces implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
 
-  constructor(private placesService: AccommodationService) {}
+  constructor(private placesService: AccommodationService,
+    private tokenService: TokenService
+  ) {}
 
   ngOnInit(): void {
     this.loadMyAccommodations();
@@ -67,7 +70,7 @@ export class MyPlaces implements OnInit {
 }
 
 private getMyAccommodationsWithOwnerCheck(allAccommodations: any[]): void {
-  const currentUserId = 2; // TEMPORAL - reemplazar con this.tokenService.getUserId()
+  const currentUserId = this.tokenService.getUserId(); // TEMPORAL - reemplazar con this.tokenService.getUserId()
   
   console.log('👤 Usuario actual ID:', currentUserId);
   
