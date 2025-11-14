@@ -1,27 +1,9 @@
-// accommodation-metric.component.ts - VERSIÓN CON DTOs CORRECTOS
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-
-// Interfaces basadas en los DTOs del backend
-export interface MetricAccommodationDTO {
-  idAccommodation: number;
-  title: string;
-  startDate: string;  // LocalDate se convierte a string en formato ISO
-  endDate: string;    // LocalDate se convierte a string en formato ISO
-  countBookings: number;
-  confirmedBookings: number;
-  cancelledBookings: number;
-  completedBookings: number;
-  averageRating: number;
-  totalIncomes: number;
-}
-
-export interface MetricRequestDTO {
-  firstDate: string;  // LocalDate en formato ISO
-  lastDate: string;   // LocalDate en formato ISO
-}
+import { MetricService, MetricAccommodationDTO } from '../../services/metric-accommodation-service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-accommodation-metric',
@@ -37,11 +19,13 @@ export class AccommodationMetric implements OnInit {
   accommodationId!: number;
   isLoading: boolean = false;
   hasSearched: boolean = false;
+  accommodationTitle: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private metricService: MetricService
   ) {
     this.metricForm = this.formBuilder.group({
       startDate: ['', Validators.required],
@@ -52,9 +36,16 @@ export class AccommodationMetric implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       this.accommodationId = +params['id'];
-      console.log('ID del alojamiento:', this.accommodationId);
+      console.log('🏠 ID del alojamiento:', this.accommodationId);
       
-      // Fechas por defecto (últimos 30 días) - convertidas a formato ISO
+      if (isNaN(this.accommodationId) || this.accommodationId <= 0) {
+        console.error('❌ ID de alojamiento inválido');
+        Swal.fire('Error', 'ID de alojamiento no válido', 'error');
+        this.router.navigate(['/my-places']);
+        return;
+      }
+
+      // Establecer fechas por defecto (últimos 30 días hasta hoy)
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - 30);
@@ -65,70 +56,81 @@ export class AccommodationMetric implements OnInit {
       });
 
       // Cargar métricas automáticamente al inicio
-      this.loadMockData();
+      this.loadMetrics();
     });
   }
 
   onFilter(): void {
-    if (this.metricForm.invalid) return;
-    
+    if (this.metricForm.invalid) {
+      Swal.fire('Error', 'Por favor completa ambas fechas', 'error');
+      return;
+    }
+
+    this.loadMetrics();
+  }
+
+  private loadMetrics(): void {
+    const startDate = this.metricForm.value.startDate;
+    const endDate = this.metricForm.value.endDate;
+
+    // Validación básica de fechas
+    const validation = this.metricService.validateDateRange(startDate, endDate);
+    if (!validation.valid) {
+      Swal.fire('Error', validation.message, 'error');
+      return;
+    }
+
     this.isLoading = true;
     this.hasSearched = true;
 
-    // Simular carga de datos
-    setTimeout(() => {
-      this.loadMockData();
-      this.isLoading = false;
-    }, 1000);
-  }
-
-  private loadMockData(): void {
-    const startDate = this.metricForm.value.startDate;
-    const endDate = this.metricForm.value.endDate;
+    console.log('🔍 Solicitando métricas...');
     
-    // Convertir a objetos Date para cálculos
-    const startDateObj = new Date(startDate);
-    const endDateObj = new Date(endDate);
-    
-    // Calcular días del período para hacer datos más realistas
-    const daysDiff = Math.ceil((endDateObj.getTime() - startDateObj.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Datos que varían según el período
-    const baseBookings = Math.max(5, Math.floor(daysDiff / 10)); // Mínimo 5 reservas
-    const randomFactor = 0.8 + Math.random() * 0.4; // Variación del 80% al 120%
-
-    this.currentMetric = {
-      idAccommodation: this.accommodationId,
-      title: this.getAccommodationTitle(this.accommodationId),
-      startDate: startDate, // Mantener como string en formato ISO
-      endDate: endDate,     // Mantener como string en formato ISO
-      countBookings: Math.floor(baseBookings * randomFactor),
-      confirmedBookings: Math.floor(baseBookings * randomFactor * 0.8), // 80% confirmadas
-      cancelledBookings: Math.floor(baseBookings * randomFactor * 0.1), // 10% canceladas
-      completedBookings: Math.floor(baseBookings * randomFactor * 0.7), // 70% completadas
-      averageRating: Number((3.5 + Math.random() * 1.5).toFixed(1)), // Rating entre 3.5 y 5.0
-      totalIncomes: Math.floor(baseBookings * randomFactor * 250000) // Ingreso base $250,000 por reserva
-    };
-
-    console.log('📊 Datos mock cargados:', this.currentMetric);
-  }
-
-  // Método para preparar datos para enviar al backend
-  private prepareRequestData(): MetricRequestDTO {
-    return {
-      firstDate: this.convertToLocalDateString(this.metricForm.value.startDate),
-      lastDate: this.convertToLocalDateString(this.metricForm.value.endDate)
-    };
-  }
-
-  // Convertir fecha a formato LocalDate (YYYY-MM-DD)
-  private convertToLocalDateString(dateString: string): string {
-    return dateString; // Ya está en formato YYYY-MM-DD desde el input date
+    this.metricService.getAccommodationMetric(this.accommodationId, startDate, endDate)
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          
+          if (!response.error && response.content) {
+            // Verificar si el content es un string (error) o un objeto (éxito)
+            if (typeof response.content === 'string') {
+              console.error('❌ El backend retornó un error:', response.content);
+              Swal.fire('Error', response.content, 'error');
+              this.currentMetric = null;
+            } else {
+              this.currentMetric = response.content as MetricAccommodationDTO;
+              this.accommodationTitle = this.currentMetric.title;
+              console.log('✅ Métricas cargadas correctamente:', this.currentMetric);
+              
+              Swal.fire({
+                title: '¡Éxito!',
+                text: 'Métricas cargadas correctamente',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              });
+            }
+          } else {
+            console.error('❌ Error en la respuesta del backend');
+            const errorMessage = typeof response.content === 'string' 
+              ? response.content 
+              : 'No se pudieron cargar las métricas';
+            
+            Swal.fire('Error', errorMessage, 'error');
+            this.currentMetric = null;
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          console.error('❌ Error en la petición:', error);
+          Swal.fire('Error', 'Error de conexión al servidor', 'error');
+          this.currentMetric = null;
+        }
+      });
   }
 
   // Formatear fecha para input date (YYYY-MM-DD)
   private formatDateForInput(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return this.metricService.formatDateForBackend(date);
   }
 
   // Formatear fecha para mostrar (DD/MM/YYYY)
@@ -140,17 +142,6 @@ export class AccommodationMetric implements OnInit {
       month: '2-digit',
       year: 'numeric'
     });
-  }
-
-  private getAccommodationTitle(id: number): string {
-    const titles: { [key: number]: string } = {
-      1: 'Casa de Campo El Roble',
-      2: 'Apartamento Moderno en el Centro', 
-      3: 'Cabaña frente al Lago',
-      4: 'Loft en Zona Norte',
-      5: 'Penthouse con Vista al Mar'
-    };
-    return titles[id] || `Alojamiento #${id}`;
   }
 
   getConfirmationRate(): number {
@@ -175,5 +166,31 @@ export class AccommodationMetric implements OnInit {
       currency: 'COP',
       minimumFractionDigits: 0
     }).format(amount);
+  }
+
+  // Calcular ingreso promedio por reserva
+  getAverageIncomePerBooking(): number {
+    if (!this.currentMetric || this.currentMetric.countBookings === 0) return 0;
+    return this.currentMetric.totalIncomes / this.currentMetric.countBookings;
+  }
+
+  // Calcular ingreso por reserva confirmada
+  getIncomePerConfirmedBooking(): number {
+    if (!this.currentMetric || this.currentMetric.confirmedBookings === 0) return 0;
+    return this.currentMetric.totalIncomes / this.currentMetric.confirmedBookings;
+  }
+
+  // Calcular tasa de ocupación estimada (basada en días del período)
+  getEstimatedOccupancyRate(): number {
+    if (!this.currentMetric) return 0;
+    
+    const startDate = new Date(this.currentMetric.startDate);
+    const endDate = new Date(this.currentMetric.endDate);
+    const daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Asumir que cada reserva confirmada ocupa en promedio 3 días
+    const estimatedOccupiedDays = this.currentMetric.confirmedBookings * 3;
+    
+    return Number(((estimatedOccupiedDays / daysInPeriod) * 100).toFixed(1));
   }
 }

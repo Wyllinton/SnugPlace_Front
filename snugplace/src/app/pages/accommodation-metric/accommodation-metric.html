@@ -1,4 +1,3 @@
-<!-- accommodation-metric.html - VERSIÓN CORREGIDA -->
 <div class="container mt-4">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,17 +12,27 @@
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
+     <div class="card mb-4">
         <div class="card-body">
             <h5 class="text-success">Filtrar por Fechas</h5>
             <form [formGroup]="metricForm" (ngSubmit)="onFilter()" class="row g-3">
                 <div class="col-md-5">
                     <label class="form-label">Fecha Inicial</label>
-                    <input type="date" class="form-control" formControlName="startDate">
+                    <input type="date" class="form-control" formControlName="startDate"
+                           [max]="metricForm.get('endDate')?.value"> <!-- Solo mantener esta validación -->
+                    <div *ngIf="metricForm.get('startDate')?.invalid && metricForm.get('startDate')?.touched" 
+                         class="text-danger small">
+                        Fecha inicial requerida
+                    </div>
                 </div>
                 <div class="col-md-5">
                     <label class="form-label">Fecha Final</label>
-                    <input type="date" class="form-control" formControlName="endDate">
+                    <input type="date" class="form-control" formControlName="endDate"
+                           [min]="metricForm.get('startDate')?.value"> <!-- Solo mantener esta validación -->
+                    <div *ngIf="metricForm.get('endDate')?.invalid && metricForm.get('endDate')?.touched" 
+                         class="text-danger small">
+                        Fecha final requerida
+                    </div>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2" 
@@ -39,100 +48,136 @@
         </div>
     </div>
 
-    <!-- Información del alojamiento -->
-    <div *ngIf="currentMetric && hasSearched" class="card mb-4">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h4 class="text-success">{{ currentMetric.title }}</h4>
-                    <p class="text-muted mb-0">
-                        Período: {{ formatDateForDisplay(currentMetric.startDate) }} - {{ formatDateForDisplay(currentMetric.endDate) }}
-                    </p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <span class="badge bg-success fs-6">ID: #{{ currentMetric.idAccommodation }}</span>
-                </div>
-            </div>
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Cargando...</span>
         </div>
+        <p class="text-muted mt-2">Cargando métricas...</p>
     </div>
 
-    <!-- Métricas -->
-    <div *ngIf="currentMetric && hasSearched" class="row">
-        <div class="col-md-3">
-            <div class="metric-card">
-                <span class="material-symbols-rounded metric-icon text-primary">book_online</span>
-                <h4 class="text-dark">{{ currentMetric.countBookings }}</h4>
-                <p class="text-muted">Total Reservas</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <span class="material-symbols-rounded metric-icon text-success">check_circle</span>
-                <h4 class="text-dark">{{ currentMetric.confirmedBookings }}</h4>
-                <p class="text-muted">Confirmadas</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <span class="material-symbols-rounded metric-icon text-warning">star</span>
-                <h4 class="text-dark">{{ currentMetric.averageRating }}</h4>
-                <p class="text-muted">Rating Promedio</p>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="metric-card">
-                <span class="material-symbols-rounded metric-icon text-info">payments</span>
-                <h4 class="text-dark">{{ formatCurrency(currentMetric.totalIncomes) }}</h4>
-                <p class="text-muted">Ingresos Totales</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Información adicional -->
-    <div *ngIf="currentMetric && hasSearched" class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="text-success">Estado de Reservas</h5>
-                    <div class="mb-3">
-                        <small>Confirmadas: {{ currentMetric.confirmedBookings }}</small>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" [style.width]="getConfirmationRate() + '%'"></div>
-                        </div>
-                        <small class="text-muted">{{ getConfirmationRate() }}% del total</small>
+    <!-- Contenido cuando hay métricas -->
+    <div *ngIf="!isLoading && currentMetric && hasSearched">
+        <!-- Información del alojamiento -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="text-success">{{ currentMetric.title }}</h4>
+                        <p class="text-muted mb-0">
+                            Período: {{ formatDateForDisplay(currentMetric.startDate) }} - {{ formatDateForDisplay(currentMetric.endDate) }}
+                        </p>
                     </div>
-                    <div class="mb-3">
-                        <small>Completadas: {{ currentMetric.completedBookings }}</small>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" [style.width]="getCompletionRate() + '%'"></div>
-                        </div>
-                        <small class="text-muted">{{ getCompletionRate() }}% de confirmadas</small>
-                    </div>
-                    <div class="mb-3">
-                        <small>Canceladas: {{ currentMetric.cancelledBookings }}</small>
-                        <div class="progress">
-                            <div class="progress-bar bg-danger" [style.width]="getCancellationRate() + '%'"></div>
-                        </div>
-                        <small class="text-muted">{{ getCancellationRate() }}% del total</small>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-success fs-6">ID: #{{ currentMetric.idAccommodation }}</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="text-success">Análisis Financiero</h5>
-                    <div class="d-flex justify-content-between border-bottom py-2">
-                        <span>Ingreso promedio por reserva:</span>
-                        <strong class="text-success">{{ formatCurrency(currentMetric.totalIncomes / currentMetric.countBookings) }}</strong>
+
+        <!-- Métricas Principales -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <span class="material-symbols-rounded metric-icon text-primary">book_online</span>
+                    <h4 class="text-dark">{{ currentMetric.countBookings }}</h4>
+                    <p class="text-muted">Total Reservas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <span class="material-symbols-rounded metric-icon text-success">check_circle</span>
+                    <h4 class="text-dark">{{ currentMetric.confirmedBookings }}</h4>
+                    <p class="text-muted">Confirmadas</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <span class="material-symbols-rounded metric-icon text-warning">star</span>
+                    <h4 class="text-dark">{{ currentMetric.averageRating.toFixed(1) }}</h4>
+                    <p class="text-muted">Rating Promedio</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <span class="material-symbols-rounded metric-icon text-info">payments</span>
+                    <h4 class="text-dark">{{ formatCurrency(currentMetric.totalIncomes) }}</h4>
+                    <p class="text-muted">Ingresos Totales</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métricas Secundarias -->
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="metric-card metric-card-sm">
+                    <span class="material-symbols-rounded metric-icon-sm text-success">done_all</span>
+                    <h5 class="text-dark">{{ currentMetric.completedBookings }}</h5>
+                    <p class="text-muted">Completadas</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card metric-card-sm">
+                    <span class="material-symbols-rounded metric-icon-sm text-danger">cancel</span>
+                    <h5 class="text-dark">{{ currentMetric.cancelledBookings }}</h5>
+                    <p class="text-muted">Canceladas</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card metric-card-sm">
+                    <span class="material-symbols-rounded metric-icon-sm text-primary">trending_up</span>
+                    <h5 class="text-dark">{{ getConfirmationRate() }}%</h5>
+                    <p class="text-muted">Tasa de Confirmación</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-success">Estado de Reservas</h5>
+                        <div class="mb-3">
+                            <small>Confirmadas: {{ currentMetric.confirmedBookings }}</small>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" [style.width]="getConfirmationRate() + '%'"></div>
+                            </div>
+                            <small class="text-muted">{{ getConfirmationRate() }}% del total</small>
+                        </div>
+                        <div class="mb-3">
+                            <small>Completadas: {{ currentMetric.completedBookings }}</small>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" [style.width]="getCompletionRate() + '%'"></div>
+                            </div>
+                            <small class="text-muted">{{ getCompletionRate() }}% de confirmadas</small>
+                        </div>
+                        <div class="mb-3">
+                            <small>Canceladas: {{ currentMetric.cancelledBookings }}</small>
+                            <div class="progress">
+                                <div class="progress-bar bg-danger" [style.width]="getCancellationRate() + '%'"></div>
+                            </div>
+                            <small class="text-muted">{{ getCancellationRate() }}% del total</small>
+                        </div>
                     </div>
-                    <div class="d-flex justify-content-between border-bottom py-2">
-                        <span>Ingreso por reserva confirmada:</span>
-                        <strong class="text-success">{{ formatCurrency(currentMetric.totalIncomes / currentMetric.confirmedBookings) }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between py-2">
-                        <span>Tasa de ocupación estimada:</span>
-                        <strong class="text-info">{{ (currentMetric.confirmedBookings / 30 * 100).toFixed(1) }}%</strong>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="text-success">Análisis Financiero</h5>
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span>Ingreso promedio por reserva:</span>
+                            <strong class="text-success">{{ formatCurrency(getAverageIncomePerBooking()) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between border-bottom py-2">
+                            <span>Ingreso por reserva confirmada:</span>
+                            <strong class="text-success">{{ formatCurrency(getIncomePerConfirmedBooking()) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-2">
+                            <span>Tasa de ocupación estimada:</span>
+                            <strong class="text-info">{{ getEstimatedOccupancyRate() }}%</strong>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,9 +185,16 @@
     </div>
 
     <!-- Estado inicial -->
-    <div *ngIf="!hasSearched" class="text-center py-5">
+    <div *ngIf="!hasSearched && !isLoading" class="text-center py-5">
         <span class="material-symbols-rounded text-success" style="font-size: 4rem;">query_stats</span>
         <h5 class="text-success mt-3">Selecciona un rango de fechas</h5>
         <p class="text-muted">Usa el filtro de arriba para ver las métricas de este alojamiento.</p>
+    </div>
+
+    <!-- Sin datos después de búsqueda -->
+    <div *ngIf="hasSearched && !currentMetric && !isLoading" class="text-center py-5">
+        <span class="material-symbols-rounded text-warning" style="font-size: 4rem;">data_info_alert</span>
+        <h5 class="text-warning mt-3">No hay datos disponibles</h5>
+        <p class="text-muted">No se encontraron métricas para el rango de fechas seleccionado.</p>
     </div>
 </div>
