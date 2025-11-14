@@ -1,4 +1,16 @@
-<div class="accommodation-card" [routerLink]="['/accommodation-detail', accommodation.id]">
+<div 
+  class="accommodation-card" 
+  (click)="onCardClick()"
+  [class.navigation-loading]="navigationLoading"
+>
+  <!-- Estado de carga de navegación -->
+  @if (navigationLoading) {
+    <div class="navigation-loading-overlay">
+      <div class="spinner-small"></div>
+      <p>Redirigiendo...</p>
+    </div>
+  }
+
   <!-- Imagen principal -->
   <div class="card-image">
     <img 
@@ -7,11 +19,20 @@
       loading="lazy"
       (error)="onImageError($event)"
     >
+    
     <!-- Badge de calificación -->
     @if (accommodation.averageRating > 0) {
       <div class="rating-badge">
         <span class="material-symbols-rounded star-icon">star</span>
         <span class="rating-value">{{ accommodation.averageRating | number:'1.1-1' }}</span>
+      </div>
+    }
+
+    <!-- Badge de propietario -->
+    @if (isOwner && !isLoading) {
+      <div class="owner-badge">
+        <span class="material-symbols-rounded owner-icon">person</span>
+        <span>Tu propiedad</span>
       </div>
     }
   </div>
@@ -53,7 +74,13 @@
 
   <!-- Hover overlay para "Ver más" -->
   <div class="card-overlay">
-    <span class="view-details">Ver detalles</span>
+    <span class="view-details">
+      @if (isOwner && !isLoading) {
+        Gestionar propiedad
+      } @else {
+        Ver detalles
+      }
+    </span>
     <span class="material-symbols-rounded arrow-icon">arrow_forward</span>
   </div>
 </div>
