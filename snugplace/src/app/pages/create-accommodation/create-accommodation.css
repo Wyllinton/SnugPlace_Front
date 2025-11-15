@@ -205,6 +205,49 @@
   font-size: 0.95rem;
 }
 
+/* Previsualización de imagen */
+.image-preview {
+  position: relative;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.remove-image-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.remove-image-btn .material-symbols-rounded {
+  color: #e74c3c;
+  font-size: 1.2rem;
+}
+
 /* File Upload */
 .file-upload-box {
   border: 2px dashed #ddd;
@@ -218,6 +261,11 @@
   flex-direction: column;
   align-items: center;
   gap: 1rem;
+}
+
+.file-upload-box.has-image {
+  border-color: #2e8b57;
+  background: rgba(46, 139, 87, 0.05);
 }
 
 .file-upload-box:hover {
@@ -247,7 +295,7 @@
   display: none;
 }
 
-.files-selected {
+.file-info {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -260,7 +308,7 @@
   border: 1px solid rgba(46, 139, 87, 0.2);
 }
 
-.files-selected .material-symbols-rounded {
+.file-info .material-symbols-rounded {
   font-size: 1.2rem;
 }
 
@@ -325,6 +373,21 @@
 
 .btn-icon {
   font-size: 1.3rem;
+}
+
+/* Spinner para botón */
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Helper text y contadores */
@@ -511,10 +574,26 @@
   .accommodation-map {
     height: 350px;
   }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 480px) {
   .accommodation-map {
     height: 300px;
+  }
+
+  .form-card {
+    padding: 1.5rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
   }
 }

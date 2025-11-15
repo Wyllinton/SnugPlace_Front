@@ -22,8 +22,9 @@ interface LocationCoordinates {
 })
 export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   createAccommodationForm!: FormGroup;
-  selectedFiles: File[] = [];
-  selectedServices: string[] = []; // ✅ Array de ENUMS
+  selectedFile: File | null = null;
+  selectedImageUrl: string | null = null;
+  selectedServices: string[] = [];
   
   cities: string[];
   servicesList: string[];
@@ -167,9 +168,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     return this.serviceDisplayNames[serviceEnum] || serviceEnum;
   }
 
-  /**
-   * ✅ MÉTODO CRÍTICO - Manejar cambios en servicios
-   */
   onServiceChange(event: any): void {
     const serviceEnum = event.target.value;
     const isChecked = event.target.checked;
@@ -185,8 +183,6 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     }
     
     console.log('📋 Servicios actuales (ENUMS):', this.selectedServices);
-    console.log('🔍 Tipo:', typeof this.selectedServices);
-    console.log('🔍 Es array?:', Array.isArray(this.selectedServices));
     
     this.createAccommodationForm.patchValue({
       services: this.selectedServices
@@ -196,33 +192,31 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
   onFileChange(event: any): void {
     const files = event.target.files;
     if (files && files.length > 0) {
-      if (files.length > 10) {
-        Swal.fire({
-          title: 'Demasiadas imágenes',
-          text: 'Máximo 10 imágenes permitidas',
-          icon: 'warning',
-          confirmButtonText: 'Aceptar'
-        });
-        return;
-      }
-
-      const maxSize = 5 * 1024 * 1024;
-      const invalidFiles = Array.from(files).filter((file: any) => file.size > maxSize);
+      // Solo tomar el primer archivo
+      const file = files[0];
       
-      if (invalidFiles.length > 0) {
+      // Validar el archivo
+      const validation = this.imageService.validateImageFile(file);
+      if (!validation.valid) {
         Swal.fire({
-          title: 'Archivos muy grandes',
-          text: 'Cada imagen debe pesar máximo 5MB',
+          title: 'Archivo no válido',
+          text: validation.error,
           icon: 'warning',
           confirmButtonText: 'Aceptar'
         });
         return;
       }
 
-      this.selectedFiles = Array.from(files);
-      this.createAccommodationForm.patchValue({
-        images: this.selectedFiles
-      });
+      this.selectedFile = file;
+      
+      // Previsualización de la imagen
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.selectedImageUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      console.log('📸 Imagen seleccionada:', file.name);
     }
   }
 
@@ -231,252 +225,262 @@ export class CreateAccommodation implements OnInit, AfterViewInit, OnDestroy {
     return description ? description.length : 0;
   }
 
-  /**
-   * ✅ CREAR ALOJAMIENTO - VERSIÓN CON MÁXIMO LOGGING
-   */
   async createAccommodation(): Promise<void> {
-  console.log('🚀 ========================================');
-  console.log('🚀 INICIO - createAccommodation()');
-  console.log('🚀 ========================================');
+    console.log('🚀 ========================================');
+    console.log('🚀 INICIO - createAccommodation() - UNA SOLA IMAGEN');
+    console.log('🚀 ========================================');
 
-  // Validaciones
-  if (!this.createAccommodationForm.valid) {
-    this.markAllFieldsAsTouched();
-    Swal.fire({
-      title: 'Formulario incompleto',
-      text: 'Por favor completa todos los campos requeridos',
-      icon: 'warning',
-      confirmButtonText: 'Aceptar'
-    });
-    return;
-  }
-
-  if (!this.selectedLocation) {
-    Swal.fire({
-      title: 'Ubicación requerida',
-      text: 'Por favor selecciona una ubicación en el mapa',
-      icon: 'warning',
-      confirmButtonText: 'Aceptar'
-    });
-    return;
-  }
-
-  if (!this.tokenService.isLogged()) {
-    Swal.fire({
-      title: 'Sesión expirada',
-      text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-      icon: 'error',
-      confirmButtonText: 'Ir al login'
-    }).then(() => {
-      this.tokenService.logout();
-      this.router.navigate(['/login']);
-    });
-    return;
-  }
-
-  this.isSubmitting = true;
-
-  try {
-    // ✅ PASO 1: Subir imágenes
-    let images: ImageDTO[] = [];
-
-    if (this.selectedFiles.length > 0) {
-      console.log(`📸 Subiendo ${this.selectedFiles.length} imagen(es)...`);
-      
+    // Validaciones
+    if (!this.createAccommodationForm.valid) {
+      this.markAllFieldsAsTouched();
       Swal.fire({
-        title: 'Subiendo imágenes...',
-        text: `Subiendo ${this.selectedFiles.length} imagen(es) a Cloudinary`,
+        title: 'Formulario incompleto',
+        text: 'Por favor completa todos los campos requeridos',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    if (!this.selectedLocation) {
+      Swal.fire({
+        title: 'Ubicación requerida',
+        text: 'Por favor selecciona una ubicación en el mapa',
+        icon: 'warning',
+        confirmButtonText: 'Aceptar'
+      });
+      return;
+    }
+
+    if (!this.tokenService.isLogged()) {
+      Swal.fire({
+        title: 'Sesión expirada',
+        text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+        icon: 'error',
+        confirmButtonText: 'Ir al login'
+      }).then(() => {
+        this.tokenService.logout();
+        this.router.navigate(['/login']);
+      });
+      return;
+    }
+
+    this.isSubmitting = true;
+
+    try {
+      // ✅ PASO 1: Subir UNA SOLA imagen
+      let images: ImageDTO[] = [];
+
+      if (this.selectedFile) {
+        console.log(`📸 Subiendo 1 imagen...`);
+        
+        Swal.fire({
+          title: 'Subiendo imagen...',
+          text: 'Subiendo imagen a Cloudinary',
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading()
+        });
+
+        this.isUploadingImages = true;
+        const uploadedImage: CloudinaryResponse = await this.imageService.uploadSingleAccommodationImage(this.selectedFile);
+        this.isUploadingImages = false;
+
+        images = [{
+          url: uploadedImage.url,
+          cloudinaryId: uploadedImage.cloudinaryId,
+          isMainImage: true
+        }];
+
+        console.log('✅ Imagen subida:', images);
+        Swal.close();
+      } else {
+        console.log('📸 No hay imagen seleccionada (se enviará array vacío)');
+      }
+
+      // ✅ PASO 2: Obtener datos COMPLETOS del usuario
+      const userId = this.tokenService.getUserId();
+      const userName = this.tokenService.getName();
+      const userEmail = this.tokenService.getEmail();
+      
+      console.log('🔑 Datos del usuario:', { 
+        id: userId, 
+        name: userName, 
+        email: userEmail 
+      });
+
+      if (!userId || userId === 0) {
+        throw new Error('No se pudo obtener el ID del usuario del token');
+      }
+
+      if (!userName) {
+        console.warn('⚠️ No se encontró el nombre del usuario en el token');
+      }
+
+      if (!userEmail) {
+        console.warn('⚠️ No se encontró el email del usuario en el token');
+      }
+
+      // ✅ PASO 3: Preparar datos del formulario
+      const formValue = this.createAccommodationForm.value;
+      
+      console.log('📝 Datos del formulario:');
+      console.log('   title:', formValue.title);
+      console.log('   description:', formValue.description);
+      console.log('   city:', formValue.city);
+      console.log('   address:', formValue.address);
+      console.log('   priceDay:', formValue.priceDay);
+      console.log('   guestsCount:', formValue.guestsCount);
+
+      // ✅ PASO 4: LOG DETALLADO DE SERVICIOS
+      console.log('🔧 ========================================');
+      console.log('🔧 SERVICIOS SELECCIONADOS - ANÁLISIS DETALLADO');
+      console.log('🔧 ========================================');
+      console.log('🔧 this.selectedServices:', this.selectedServices);
+      console.log('🔧 Tipo:', typeof this.selectedServices);
+      console.log('🔧 Es Array?:', Array.isArray(this.selectedServices));
+      console.log('🔧 Longitud:', this.selectedServices.length);
+      console.log('🔧 Cada servicio:');
+      this.selectedServices.forEach((service, index) => {
+        console.log(`   ${index}: "${service}" (tipo: ${typeof service})`);
+      });
+      console.log('🔧 JSON.stringify:', JSON.stringify(this.selectedServices));
+      console.log('🔧 ========================================');
+
+      // ✅ PASO 5: Crear DTO EXACTO con HostDTO completo
+      const accommodationData: CreateAccommodationDTO = {
+        host: {
+          id: userId,
+          name: userName || "Anfitrión SnugPlace",
+          email: userEmail || "host@snugplace.com"
+        },
+        title: formValue.title,
+        description: formValue.description,
+        city: formValue.city,
+        address: formValue.address,
+        latitude: Number(this.selectedLocation.latitude),
+        longitude: Number(this.selectedLocation.longitude),
+        priceDay: Number(formValue.priceDay),
+        guestsCount: Number(formValue.guestsCount),
+        averageRating: 0.0,
+        status: "ACTIVE",
+        services: [...this.selectedServices],
+        images: images,
+        comments: []
+      };
+
+      console.log('📦 ========================================');
+      console.log('📦 DTO FINAL COMPLETO');
+      console.log('📦 ========================================');
+      console.log('📦 accommodationData:', accommodationData);
+      console.log('📦 Host object:', accommodationData.host);
+      console.log('📦 JSON completo:');
+      console.log(JSON.stringify(accommodationData, null, 2));
+      console.log('📦 ========================================');
+
+      // ✅ PASO 6: Enviar al backend
+      Swal.fire({
+        title: 'Creando alojamiento...',
+        text: 'Por favor espera',
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading()
       });
 
-      this.isUploadingImages = true;
-      const uploadedImages: CloudinaryResponse[] = await this.imageService.uploadMultipleImages(this.selectedFiles);
-      this.isUploadingImages = false;
-
-      images = uploadedImages.map((img, index) => ({
-        url: img.url,
-        cloudinaryId: img.cloudinaryId,
-        isMainImage: index === 0
-      }));
-
-      console.log('✅ Imágenes subidas:', images);
-    } else {
-      console.log('📸 No hay imágenes seleccionadas (se enviará array vacío)');
-    }
-
-    // ✅ PASO 2: Obtener datos COMPLETOS del usuario
-    const userId = this.tokenService.getUserId(); // ✅ Ahora es number
-    const userName = this.tokenService.getName();
-    const userEmail = this.tokenService.getEmail();
-    
-    console.log('🔑 Datos del usuario:', { 
-      id: userId, 
-      name: userName, 
-      email: userEmail 
-    });
-
-    if (!userId || userId === 0) {
-      throw new Error('No se pudo obtener el ID del usuario del token');
-    }
-
-    if (!userName) {
-      console.warn('⚠️ No se encontró el nombre del usuario en el token');
-    }
-
-    if (!userEmail) {
-      console.warn('⚠️ No se encontró el email del usuario en el token');
-    }
-
-    // ✅ PASO 3: Preparar datos del formulario
-    const formValue = this.createAccommodationForm.value;
-    
-    console.log('📝 Datos del formulario:');
-    console.log('   title:', formValue.title);
-    console.log('   description:', formValue.description);
-    console.log('   city:', formValue.city);
-    console.log('   address:', formValue.address);
-    console.log('   priceDay:', formValue.priceDay);
-    console.log('   guestsCount:', formValue.guestsCount);
-
-    // ✅ PASO 4: LOG DETALLADO DE SERVICIOS
-    console.log('🔧 ========================================');
-    console.log('🔧 SERVICIOS SELECCIONADOS - ANÁLISIS DETALLADO');
-    console.log('🔧 ========================================');
-    console.log('🔧 this.selectedServices:', this.selectedServices);
-    console.log('🔧 Tipo:', typeof this.selectedServices);
-    console.log('🔧 Es Array?:', Array.isArray(this.selectedServices));
-    console.log('🔧 Longitud:', this.selectedServices.length);
-    console.log('🔧 Cada servicio:');
-    this.selectedServices.forEach((service, index) => {
-      console.log(`   ${index}: "${service}" (tipo: ${typeof service})`);
-    });
-    console.log('🔧 JSON.stringify:', JSON.stringify(this.selectedServices));
-    console.log('🔧 ========================================');
-
-    // ✅ PASO 5: Crear DTO EXACTO con HostDTO completo
-    const accommodationData: CreateAccommodationDTO = {
-      host: {
-        id: userId,        // ✅ number
-        name: userName || "Anfitrión SnugPlace",    // ✅ string con valor por defecto
-        email: userEmail || "host@snugplace.com"   // ✅ string con valor por defecto
-      },
-      title: formValue.title,
-      description: formValue.description,
-      city: formValue.city,
-      address: formValue.address,
-      latitude: Number(this.selectedLocation.latitude),
-      longitude: Number(this.selectedLocation.longitude),
-      priceDay: Number(formValue.priceDay),
-      guestsCount: Number(formValue.guestsCount),
-      averageRating: 0.0,
-      status: "ACTIVE",
-      services: [...this.selectedServices],  // ✅ Crear nueva copia del array
-      images: images,
-      comments: []
-    };
-
-    console.log('📦 ========================================');
-    console.log('📦 DTO FINAL COMPLETO');
-    console.log('📦 ========================================');
-    console.log('📦 accommodationData:', accommodationData);
-    console.log('📦 Host object:', accommodationData.host);
-    console.log('📦 JSON completo:');
-    console.log(JSON.stringify(accommodationData, null, 2));
-    console.log('📦 ========================================');
-
-    // ✅ PASO 6: Enviar al backend
-    Swal.fire({
-      title: 'Creando alojamiento...',
-      text: 'Por favor espera',
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading()
-    });
-
-    this.accommodationService.createAccommodation(accommodationData).subscribe({
-      next: (response) => {
-        this.isSubmitting = false;
-        
-        console.log('✅ ========================================');
-        console.log('✅ RESPUESTA EXITOSA DEL BACKEND');
-        console.log('✅ ========================================');
-        console.log('✅ Response:', response);
-        
-        if (response.error) {
-          throw new Error(response.content || 'Error desconocido');
-        }
-        
-        Swal.fire({
-          title: '¡Éxito!',
-          text: response.content || 'Alojamiento creado exitosamente',
-          icon: 'success',
-          confirmButtonText: 'Ver mis alojamientos'
-        }).then(() => {
-          this.resetForm();
-          this.router.navigate(['/my-places']);
-        });
-      },
-      error: (error) => {
-        this.isSubmitting = false;
-        
-        console.error('❌ ========================================');
-        console.error('❌ ERROR DEL BACKEND');
-        console.error('❌ ========================================');
-        console.error('❌ Error completo:', error);
-        console.error('❌ Status:', error.status);
-        console.error('❌ Error body:', error.error);
-        console.error('❌ Message:', error.message);
-        
-        if (error.status === 401) {
-          Swal.fire({
-            title: 'Sesión expirada',
-            text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
-            icon: 'error',
-            confirmButtonText: 'Ir al login'
-          }).then(() => {
-            this.tokenService.logout();
-            this.router.navigate(['/login']);
-          });
-        } else {
-          const errorMessage = error.error?.content || error.error?.message || error.message || 'Error desconocido';
+      this.accommodationService.createAccommodation(accommodationData).subscribe({
+        next: (response) => {
+          this.isSubmitting = false;
+          
+          console.log('✅ ========================================');
+          console.log('✅ RESPUESTA EXITOSA DEL BACKEND');
+          console.log('✅ ========================================');
+          console.log('✅ Response:', response);
+          
+          if (response.error) {
+            throw new Error(response.content || 'Error desconocido');
+          }
           
           Swal.fire({
-            title: 'Error',
-            html: `<div style="text-align: left;">
-              <p><strong>No se pudo crear el alojamiento:</strong></p>
-              <p style="color: #d33; margin-top: 10px;">${errorMessage}</p>
-              <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                Por favor revisa la consola del navegador (F12) para más detalles.
-              </p>
-            </div>`,
-            icon: 'error',
-            confirmButtonText: 'Aceptar'
+            title: '¡Éxito!',
+            text: response.content || 'Alojamiento creado exitosamente',
+            icon: 'success',
+            confirmButtonText: 'Ver mis alojamientos'
+          }).then(() => {
+            this.resetForm();
+            this.router.navigate(['/my-places']);
           });
+        },
+        error: (error) => {
+          this.isSubmitting = false;
+          
+          console.error('❌ ========================================');
+          console.error('❌ ERROR DEL BACKEND');
+          console.error('❌ ========================================');
+          console.error('❌ Error completo:', error);
+          console.error('❌ Status:', error.status);
+          console.error('❌ Error body:', error.error);
+          console.error('❌ Message:', error.message);
+          
+          if (error.status === 401) {
+            Swal.fire({
+              title: 'Sesión expirada',
+              text: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
+              icon: 'error',
+              confirmButtonText: 'Ir al login'
+            }).then(() => {
+              this.tokenService.logout();
+              this.router.navigate(['/login']);
+            });
+          } else {
+            const errorMessage = error.error?.content || error.error?.message || error.message || 'Error desconocido';
+            
+            Swal.fire({
+              title: 'Error',
+              html: `<div style="text-align: left;">
+                <p><strong>No se pudo crear el alojamiento:</strong></p>
+                <p style="color: #d33; margin-top: 10px;">${errorMessage}</p>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                  Por favor revisa la consola del navegador (F12) para más detalles.
+                </p>
+              </div>`,
+              icon: 'error',
+              confirmButtonText: 'Aceptar'
+            });
+          }
         }
-      }
-    });
+      });
 
-  } catch (error: any) {
-    this.isSubmitting = false;
-    this.isUploadingImages = false;
-    
-    console.error('❌ ========================================');
-    console.error('❌ ERROR EN CATCH');
-    console.error('❌ ========================================');
-    console.error('❌ Error:', error);
-    
-    Swal.fire({
-      title: 'Error',
-      text: error.message || 'Ocurrió un error inesperado',
-      icon: 'error',
-      confirmButtonText: 'Aceptar'
-    });
+    } catch (error: any) {
+      this.isSubmitting = false;
+      this.isUploadingImages = false;
+      
+      console.error('❌ ========================================');
+      console.error('❌ ERROR EN CATCH');
+      console.error('❌ ========================================');
+      console.error('❌ Error:', error);
+      
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'Ocurrió un error inesperado',
+        icon: 'error',
+        confirmButtonText: 'Aceptar'
+      });
+    }
   }
-}
+
+  removeSelectedImage(): void {
+    this.selectedFile = null;
+    this.selectedImageUrl = null;
+    
+    // Resetear el input file
+    const fileInput = document.getElementById('image') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
 
   private resetForm(): void {
     this.createAccommodationForm.reset();
-    this.selectedFiles = [];
+    this.selectedFile = null;
+    this.selectedImageUrl = null;
     this.selectedServices = [];
     this.selectedLocation = null;
     this.mapService.clearSelectedLocation();

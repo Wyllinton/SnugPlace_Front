@@ -172,31 +172,51 @@
         </div>
       </div>
 
-      <!-- Imágenes -->
+      <!-- Imagen del alojamiento (UNA SOLA) -->
       <div class="form-group">
-        <label class="section-label">Imágenes del alojamiento</label>
-        <div class="file-upload-box" (click)="fileInput.click()">
+        <label class="section-label">Imagen del alojamiento</label>
+        
+        <!-- Previsualización de imagen -->
+        @if (selectedImageUrl) {
+          <div class="image-preview">
+            <img [src]="selectedImageUrl" alt="Vista previa" class="preview-image">
+            <button type="button" class="remove-image-btn" (click)="removeSelectedImage()">
+              <span class="material-symbols-rounded">delete</span>
+            </button>
+          </div>
+        }
+        
+        <!-- Área de upload -->
+        <div class="file-upload-box" 
+             (click)="fileInput.click()"
+             [class.has-image]="selectedImageUrl">
           <div class="upload-icon">
             <span class="material-symbols-rounded">cloud_upload</span>
           </div>
           <div class="upload-text">
-            <p>Haz clic para seleccionar imágenes</p>
-            <small>Formatos: JPG, PNG, WEBP • Máx. 5MB por imagen • Máx. 10 imágenes</small>
+            @if (!selectedImageUrl) {
+              <p>Haz clic para seleccionar una imagen</p>
+              <small>Formatos: JPG, PNG, WEBP • Máx. 5MB</small>
+            } @else {
+              <p>Imagen seleccionada</p>
+              <small>Haz clic para cambiar la imagen</small>
+            }
           </div>
         </div>
+        
         <input 
           #fileInput
           type="file" 
-          id="images"
-          multiple 
+          id="image"
           accept="image/*"
           class="file-input"
           (change)="onFileChange($event)"
         >
-        @if (selectedFiles.length > 0) {
-          <div class="files-selected">
+        
+        @if (selectedFile) {
+          <div class="file-info">
             <span class="material-symbols-rounded">check_circle</span>
-            <span>{{ selectedFiles.length }} archivo(s) seleccionado(s)</span>
+            <span>{{ selectedFile.name }} ({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
           </div>
         }
       </div>
@@ -212,9 +232,14 @@
         <button 
           type="submit" 
           class="submit-btn"
-          [disabled]="createAccommodationForm.invalid || !hasLocation()">
-          <span class="btn-icon">🏠</span>
-          Crear alojamiento
+          [disabled]="createAccommodationForm.invalid || !hasLocation() || isSubmitting">
+          @if (isSubmitting) {
+            <span class="spinner-small"></span>
+            Creando...
+          } @else {
+            <span class="btn-icon">🏠</span>
+            Crear alojamiento
+          }
         </button>
       </div>
     </form>
