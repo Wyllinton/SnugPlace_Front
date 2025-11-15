@@ -1,3 +1,5 @@
+<!-- accommodation-detail.html - actualizar la sección de imágenes -->
+
 <div class="container pt-5 pb-5">
     <!-- Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
@@ -22,15 +24,32 @@
                     <div class="card-body p-0">
                         <!-- Imagen principal -->
                         <div class="gallery-main">
-                            <img [src]="selectedImage || place.images[0]" 
+                            <img [src]="selectedImage || (place.images && place.images[0]?.url) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop'" 
                                  [alt]="place.title"
-                                 class="img-fluid rounded-top accommodation-main-image">
+                                 class="img-fluid rounded-top accommodation-main-image"
+                                 (error)="handleImageError($event)">
                         </div>
+                        
+                        <!-- Miniaturas de imágenes -->
+                        @if (place.images && place.images.length > 1) {
+                            <div class="gallery-thumbnails">
+                                @for (image of place.images; track $index) {
+                                    <div class="thumbnail-item" 
+                                         [class.active]="selectedImage === image.url"
+                                         (click)="selectImage(image.url)">
+                                        <img [src]="image.url" 
+                                             [alt]="'Imagen ' + ($index + 1) + ' de ' + place.title"
+                                             class="img-fluid"
+                                             (error)="handleThumbnailError($event, $index)">
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
 
-            <!-- Información del alojamiento -->
+            <!-- Resto del código se mantiene igual... -->
             <div class="col-lg-4">
                 <div class="card accommodation-info">
                     <div class="card-body">
@@ -135,7 +154,7 @@
                 </div>
             </div>
         </div>
-    } @else {
+    } @else if (isLoading) {
         <!-- Loading state -->
         <div class="text-center py-5">
             <div class="spinner-border text-success" role="status">

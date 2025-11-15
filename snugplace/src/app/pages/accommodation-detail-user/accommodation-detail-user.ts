@@ -1,3 +1,5 @@
+// En accommodation-detail-user.ts - actualizar el componente
+
 import { Component, OnDestroy, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
@@ -18,7 +20,8 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
   place: PlaceDTO | null = null;
   loading: boolean = true;
   error: string | null = null;
-  private mapInitialized = false; // ✅ Controlar si el mapa ya fue inicializado
+  selectedImage: string | null = null;
+  private mapInitialized = false;
 
   constructor(
     private route: ActivatedRoute, 
@@ -51,12 +54,19 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     this.accommodationService.getAccommodationById(id).subscribe({
       next: (response) => {
         console.log('✅ Respuesta COMPLETA del backend:', response);
+        console.log('🖼️ Imágenes recibidas:', response.content?.images);
         
         if (!response.error && response.content) {
           this.place = this.mapAccommodationToPlace(response.content);
           console.log('🏡 Alojamiento cargado después de mapping:', this.place);
           
-          // ✅ Inicializar el mapa después de un delay para asegurar que el DOM esté listo
+          // Establecer imagen principal por defecto
+          if (this.place.images && this.place.images.length > 0) {
+            const mainImage = this.place.images.find(img => img.isMainImage) || this.place.images[0];
+            this.selectedImage = mainImage.url;
+          }
+          
+          // Inicializar el mapa después de un delay
           setTimeout(() => {
             this.initializeMapWithPlaceLocation();
           }, 300);
@@ -89,7 +99,29 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
   private mapAccommodationToPlace(accommodation: any): PlaceDTO {
     console.log('🗺️ Haciendo mapping de accommodation a place:', accommodation);
     
-    const mainImageUrl = accommodation.mainImage?.url || '';
+    // Manejar imágenes - asegurar que siempre sea un array
+    let images: any[] = [];
+    if (accommodation.images && Array.isArray(accommodation.images)) {
+      images = accommodation.images.map((img: any) => {
+        if (typeof img === 'string') {
+          return { 
+            url: img, 
+            cloudinaryId: '', 
+            isMainImage: false 
+          };
+        }
+        return img;
+      });
+    } else if (accommodation.mainImage) {
+      // Si hay mainImage pero no array de imágenes
+      images = [{
+        url: typeof accommodation.mainImage === 'string' 
+          ? accommodation.mainImage 
+          : accommodation.mainImage.url,
+        cloudinaryId: '',
+        isMainImage: true
+      }];
+    }
     
     return {
       id: accommodation.id,
@@ -97,7 +129,7 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
       description: accommodation.description,
       priceDay: accommodation.priceDay,
       guestsCount: accommodation.guestsCount,
-      images: mainImageUrl ? [mainImageUrl] : [],
+      images: images,
       services: Array.from(accommodation.services || []),
       address: {
         city: accommodation.city,
@@ -113,8 +145,24 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     };
   }
 
+  // Método para cambiar imagen seleccionada
+  selectImage(imageUrl: string): void {
+    this.selectedImage = imageUrl;
+  }
+
+  // Manejar errores de imágenes
+  handleImageError(event: any): void {
+    console.error('❌ Error cargando imagen principal');
+    event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop';
+  }
+
+  handleThumbnailError(event: any, index: number): void {
+    console.error(`❌ Error cargando miniatura ${index}`);
+    event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop';
+  }
+
+  // Resto de los métodos se mantienen igual...
   ngAfterViewInit(): void {
-    // ✅ Si los datos ya están cargados, inicializar el mapa
     if (this.place && !this.mapInitialized) {
       setTimeout(() => {
         this.initializeMapWithPlaceLocation();
@@ -128,7 +176,6 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
       return;
     }
 
-    // ✅ Evitar inicializar múltiples veces
     if (this.mapInitialized) {
       console.log('🗺️ El mapa ya fue inicializado');
       return;
@@ -141,18 +188,14 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
 
     console.log('📍 Coordenadas:', { latitude, longitude });
 
-    // ✅ Destruir mapa existente antes de crear uno nuevo
     this.mapService.destroyMap();
+    this.mapService.buildMap('map');
 
-    // ✅ Construir el mapa - IMPORTANTE: usar los mismos parámetros que en accommodation-detail
-    this.mapService.buildMap('map'); // ✅ Sin el segundo parámetro 'false'
-
-    // ✅ Delay para asegurar que el mapa se renderice correctamente
     setTimeout(() => {
       this.mapService.setCenter(longitude, latitude);
       this.mapService.setZoom(15);
       this.mapService.addMarker(longitude, latitude, this.place?.title || 'Alojamiento');
-      this.mapInitialized = true; // ✅ Marcar como inicializado
+      this.mapInitialized = true;
       console.log('✅ Mapa inicializado correctamente');
     }, 500);
   }
@@ -223,7 +266,6 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     console.log('📅 Intentando navegar a creación de reserva...');
     console.log('🔢 PlaceId:', this.placeId);
 
-    // ✅ VERIFICAR AUTENTICACIÓN ANTES DE NAVEGAR
     const token = localStorage.getItem('authToken');
     if (!token) {
       console.log('🔐 Usuario no autenticado, redirigiendo a login');
@@ -237,7 +279,6 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
         confirmButtonColor: '#198754',
       }).then((result) => {
         if (result.isConfirmed) {
-          // Redirigir al login con la URL de retorno
           this.router.navigate(['/login'], { 
             queryParams: { 
               returnUrl: this.router.url 
@@ -260,8 +301,6 @@ export class AccommodationDetailUser implements OnInit, OnDestroy, AfterViewInit
     }
 
     console.log('📍 Navegando a bookings/create con ID:', this.placeId);
-    
-    // Navegar a la página de creación de reserva
     this.router.navigate(['/bookings/create', this.placeId]);
   }
 }

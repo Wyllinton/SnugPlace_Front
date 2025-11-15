@@ -1,3 +1,5 @@
+// En accommodation-detail.ts - actualizar el componente
+
 import { Component, OnDestroy, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule, DecimalPipe } from '@angular/common';
@@ -14,7 +16,7 @@ import { MapService } from '../../services/map-service';
 })
 export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
 
-  placeId: number = 0; // ✅ Cambiar a number y inicializar en 0
+  placeId: number = 0;
   place: PlaceDTO | undefined;
   selectedImage: string | null = null;
   private mapInitialized = false;
@@ -25,12 +27,13 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     private placesServices: AccommodationService,
     private router: Router,
     private mapService: MapService
-  ){
-    this.route.params.subscribe( (params) => {
+  ){}
+
+  ngOnInit(): void {
+    this.route.params.subscribe((params) => {
       const idParam = params["id"];
       console.log('🔍 ID recibido de la ruta:', idParam);
       
-      // ✅ CONVERSIÓN SEGURA DEL ID (igual que en edit-accommodation)
       if (idParam && !isNaN(Number(idParam))) {
         this.placeId = Number(idParam);
         console.log('✅ ID válido en accommodation-detail:', this.placeId);
@@ -43,20 +46,26 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  public get(placeID: number): void { // ✅ Cambiar parámetro a number
+  public get(placeID: number): void {
     console.log('🔍 Iniciando carga del alojamiento ID:', placeID);
     this.isLoading = true;
     
-    // ✅ USAR CONVERSIÓN SEGURA (ya viene como number)
     this.placesServices.getAccommodationDetails(placeID).subscribe({
       next: (resp) => {
         console.log('📥 Respuesta completa de getAccommodationDetails:', resp);
+        console.log('🖼️ Imágenes recibidas:', resp.content?.images);
         
         if (!resp.error && resp.content) {
           this.place = this.mapAccommodationToPlace(resp.content);
           console.log('✅ Alojamiento cargado correctamente:', this.place);
           
-          // ✅ Inicializar el mapa después de un delay
+          // Establecer imagen principal por defecto
+          if (this.place.images && this.place.images.length > 0) {
+            const mainImage = this.place.images.find(img => img.isMainImage) || this.place.images[0];
+            this.selectedImage = mainImage.url;
+          }
+          
+          // Inicializar el mapa después de un delay
           setTimeout(() => {
             this.initializeMapWithPlaceLocation();
           }, 300);
@@ -86,7 +95,29 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   private mapAccommodationToPlace(accommodation: any): PlaceDTO {
     console.log('🗺️ Haciendo mapping de accommodation a place:', accommodation);
     
-    const mainImageUrl = accommodation.mainImage?.url || '';
+    // Manejar imágenes - asegurar que siempre sea un array
+    let images: any[] = [];
+    if (accommodation.images && Array.isArray(accommodation.images)) {
+      images = accommodation.images.map((img: any) => {
+        if (typeof img === 'string') {
+          return { 
+            url: img, 
+            cloudinaryId: '', 
+            isMainImage: false 
+          };
+        }
+        return img;
+      });
+    } else if (accommodation.mainImage) {
+      // Si hay mainImage pero no array de imágenes
+      images = [{
+        url: typeof accommodation.mainImage === 'string' 
+          ? accommodation.mainImage 
+          : accommodation.mainImage.url,
+        cloudinaryId: '',
+        isMainImage: true
+      }];
+    }
     
     return {
       id: accommodation.id,
@@ -94,7 +125,7 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       description: accommodation.description,
       priceDay: accommodation.priceDay,
       guestsCount: accommodation.guestsCount,
-      images: mainImageUrl ? [mainImageUrl] : [],
+      images: images,
       services: Array.from(accommodation.services || []),
       address: {
         city: accommodation.city,
@@ -110,12 +141,13 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     };
   }
 
-  ngOnInit(): void {
-    // El mapa se inicializará después de cargar los datos del lugar
+  // Método para cambiar imagen seleccionada
+  selectImage(imageUrl: string): void {
+    this.selectedImage = imageUrl;
   }
 
+  // Resto de los métodos se mantienen igual...
   ngAfterViewInit(): void {
-    // ✅ Si los datos ya están cargados, inicializar el mapa
     if (this.place && !this.mapInitialized) {
       setTimeout(() => {
         this.initializeMapWithPlaceLocation();
@@ -129,7 +161,6 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    // ✅ Evitar inicializar múltiples veces
     if (this.mapInitialized) {
       console.log('🗺️ El mapa ya fue inicializado');
       return;
@@ -156,10 +187,8 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public onDelete() {
-    // ✅ Ya tenemos placeId como number, no necesitamos convertir
     const idToDelete = this.placeId;
     
-    // ✅ Validar que el ID sea válido
     if (!idToDelete || isNaN(idToDelete)) {
       console.error('❌ ID inválido para eliminar:', this.placeId);
       Swal.fire('Error', 'ID de alojamiento no válido', 'error');
@@ -202,8 +231,19 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  // ✅ Método para obtener el ID seguro para los botones
   getSafePlaceId(): number {
     return this.placeId;
   }
+
+    handleImageError(event: any): void {
+      console.error('❌ Error cargando imagen principal');
+      // Usar imagen por defecto
+      event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop';
+    }
+
+    handleThumbnailError(event: any, index: number): void {
+      console.error(`❌ Error cargando miniatura ${index}`);
+      // Usar imagen por defecto para miniatura
+      event.target.src = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200&h=150&fit=crop';
+    }
 }

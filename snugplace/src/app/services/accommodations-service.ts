@@ -363,12 +363,34 @@ private extractMainImage(item: any): string {
     return this.searchFilteredAccommodations(emptyFilters);
   }
 
+  // En accommodation.service.ts - actualizar el método getAccommodationById
+
   getAccommodationById(id: number): Observable<ResponseDTO<PlaceDTO>> {
     return this.http.get<ResponseDTO<PlaceDTO>>(`${this.apiUrl}/${id}`)
-      .pipe(catchError(error => {
-        console.error('❌ Error obteniendo alojamiento:', error);
-        return of({ error: true, content: null as any } as ResponseDTO<PlaceDTO>);
-      }));
+      .pipe(
+        map(response => {
+          if (!response.error && response.content) {
+            // Procesar las imágenes correctamente
+            const accommodation = response.content;
+            console.log('🖼️ Imágenes del alojamiento:', accommodation.images);
+            
+            // Asegurarse de que las imágenes tengan la estructura correcta
+            if (accommodation.images && Array.isArray(accommodation.images)) {
+              accommodation.images = accommodation.images.map((img: any) => {
+                if (typeof img === 'string') {
+                  return { url: img, cloudinaryId: '', isMainImage: false };
+                }
+                return img;
+              });
+            }
+          }
+          return response;
+        }),
+        catchError(error => {
+          console.error('❌ Error obteniendo alojamiento:', error);
+          return of({ error: true, content: null as any } as ResponseDTO<PlaceDTO>);
+        })
+      );
   }
 
   // En accommodations-service.ts

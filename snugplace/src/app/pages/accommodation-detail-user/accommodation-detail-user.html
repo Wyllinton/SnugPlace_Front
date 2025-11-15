@@ -1,3 +1,5 @@
+<!-- accommodation-detail-user.html - actualizar la sección de imágenes -->
+
 <div class="accommodation-detail">
   <!-- Estado de carga -->
   @if (loading) {
@@ -21,15 +23,32 @@
   <!-- Detalles del alojamiento -->
   @if (place && !loading) {
     <div class="detail-container">
-      <!-- Imagen simple -->
+      <!-- Galería de imágenes -->
       <section class="image-section">
+        <!-- Imagen principal -->
         <div class="main-image">
-          <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop" 
-               [alt]="place.title">
+          <img [src]="selectedImage || (place.images && place.images[0]?.url) || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=500&fit=crop'" 
+               [alt]="place.title"
+               (error)="handleImageError($event)">
         </div>
+        
+        <!-- Miniaturas -->
+        @if (place.images && place.images.length > 1) {
+          <div class="image-thumbnails">
+            @for (image of place.images; track $index) {
+              <div class="thumbnail" 
+                   [class.active]="selectedImage === image.url"
+                   (click)="selectImage(image.url)">
+                <img [src]="image.url" 
+                     [alt]="'Imagen ' + ($index + 1) + ' de ' + place.title"
+                     (error)="handleThumbnailError($event, $index)">
+              </div>
+            }
+          </div>
+        }
       </section>
 
-      <!-- Información principal -->
+      <!-- Resto del contenido se mantiene igual... -->
       <section class="main-info">
         <div class="header-section">
           <h1 class="place-title">{{ place.title }}</h1>
@@ -87,13 +106,12 @@
 
         <!-- Mapa -->
         <div class="map-section">
-            <h3>Ubicación</h3>
-            <!-- ✅ Cambiar a la misma clase que accommodation-detail -->
-            <div id="map" class="accommodation-map rounded"></div>
-            <p class="map-address">
-                <strong>Dirección exacta:</strong> {{ place.address.address }}, {{ place.address.city }}
-            </p>
-            </div>
+          <h3>Ubicación</h3>
+          <div id="map" class="accommodation-map rounded"></div>
+          <p class="map-address">
+            <strong>Dirección exacta:</strong> {{ place.address.address }}, {{ place.address.city }}
+          </p>
+        </div>
       </section>
 
       <!-- Sidebar de reserva -->
