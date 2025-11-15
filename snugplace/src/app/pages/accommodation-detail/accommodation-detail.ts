@@ -139,7 +139,7 @@ export class AccommodationDetail implements OnInit, OnDestroy, AfterViewInit {
       averageRating: accommodation.averageRating || 0,
       reviewsCount: accommodation.reviewsCount || 0
     };
-  }
+  }//Se terminó el proyecto
 
   // Método para cambiar imagen seleccionada
   selectImage(imageUrl: string): void {
