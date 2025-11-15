@@ -20,6 +20,7 @@ export class MyPlaces implements OnInit {
   places: PlaceDTO[] = [];
   isLoading: boolean = true;
   errorMessage: string = '';
+  myAccommodations: any[] = [];
 
   constructor(private placesService: AccommodationService,
     private tokenService: TokenService
@@ -33,40 +34,53 @@ export class MyPlaces implements OnInit {
   this.isLoading = true;
   this.errorMessage = '';
   
-  console.log('🏠 Cargando mis alojamientos usando searchFilteredAccommodations...');
+  console.log('🏠 Cargando mis alojamientos usando getMyAccommodationsHost...');
+  console.log('👤 Usuario actual ID:', this.tokenService.getUserId());
   
-  // ✅ USAR EL MISMO MÉTODO QUE FUNCIONA EN HOME
-  const emptyFilters: SearchFilters = { 
-    page: 0, 
-    size: 100  // Obtener muchos para filtrar
-  };
-  
-  this.placesService.searchFilteredAccommodations(emptyFilters).subscribe({
+  this.placesService.getMyAccommodationsHost(0).subscribe({
     next: (response: any) => {
-      console.log('✅ Respuesta de searchFilteredAccommodations:', response);
+      console.log('✅ RESPUESTA COMPLETA DEL SERVICIO:', response);
       
-      if (!response.error && response.data) {
-        // ✅ FILTRAR SOLO LOS ALOJAMIENTOS DEL USUARIO ACTUAL
-        // Para esto necesitamos obtener el host de cada alojamiento
-        const allAccommodations = response.data;
-        
-        console.log('🏘️ Todos los alojamientos:', allAccommodations.length);
-        
-        // Obtener detalles completos de CADA alojamiento para verificar el host
-        this.getMyAccommodationsWithOwnerCheck(allAccommodations);
-        
+      // ✅ VERIFICAR SI LA RESPUESTA TIENE ERROR
+      if (response.error) {
+        this.handleError(response.message);
+        return;
+      }
+      
+      // ✅ VERIFICAR QUE DATA SEA UN ARRAY
+      if (!Array.isArray(response.data)) {
+        console.error('❌ response.data no es un array:', response.data);
+        this.handleError('Estructura de datos inválida');
+        return;
+      }
+      
+      this.myAccommodations = response.data;
+      
+      console.log('🏘️ Mis alojamientos encontrados:', this.myAccommodations.length);
+      
+      this.isLoading = false;
+      
+      if (this.myAccommodations.length === 0) {
+        this.errorMessage = 'No tienes alojamientos registrados.';
+        console.log('ℹ️ Usuario no tiene alojamientos registrados');
+        Swal.fire('Info', this.errorMessage, 'info');
       } else {
-        this.errorMessage = response.message || 'Error al cargar los alojamientos';
-        this.isLoading = false;
+        console.log('🎯 Alojamientos cargados exitosamente');
       }
     },
     error: (err) => {
-      console.error('Error cargando alojamientos:', err);
-      this.errorMessage = 'No se pudieron cargar tus alojamientos. Intenta nuevamente.';
-      this.isLoading = false;
-      Swal.fire('Error', this.errorMessage, 'error');
+      console.error('❌ Error en suscripción:', err);
+      this.handleError('Error de conexión con el servidor');
     }
   });
+}
+
+private handleError(message: string): void {
+  this.errorMessage = message;
+  this.isLoading = false;
+  this.myAccommodations = [];
+  console.error('❌ Error:', message);
+  Swal.fire('Error', this.errorMessage, 'error');
 }
 
 private getMyAccommodationsWithOwnerCheck(allAccommodations: any[]): void {
@@ -189,7 +203,7 @@ private getMyAccommodationsWithOwnerCheck(allAccommodations: any[]): void {
         this.placesService.delete(placeId).subscribe({
           next: (response) => {
             if (!response.error) {
-              this.places = this.places.filter(p => p.id !== placeId);
+              this.myAccommodations = this.myAccommodations.filter(p => p.id !== placeId);
               Swal.fire({
                 title: "¡Eliminado!",
                 text: "El alojamiento ha sido eliminado correctamente.",

@@ -50,7 +50,7 @@
                     </thead>
 
                     <tbody class="border-top-0">
-                        @if (places.length === 0) {
+                        @if (myAccommodations.length === 0) {
                         <tr>
                             <td colspan="6" class="text-center py-5">
                                 <div class="text-muted">
@@ -63,7 +63,7 @@
                         </tr>
                         }
                         
-                        @for (item of places; track item.id || $index) {
+                        @for (item of myAccommodations; track item.id || $index) {
                         <tr class="hover-shadow">
                             <td class="ps-4">
                                 <span class="text-muted small">#{{ item.id }}</span>
@@ -71,8 +71,8 @@
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="flex-shrink-0">
-                                        @if (item.images && item.images.length > 0) {
-                                        <img [src]="item.images[0]" [alt]="item.title" 
+                                        @if (item.mainImage) {
+                                        <img [src]="item.mainImage" [alt]="item.title" 
                                              class="rounded-2 object-fit-cover"
                                              style="width: 60px; height: 45px;">
                                         } @else {
@@ -94,8 +94,8 @@
                             </td>
                             <td>
                                 <div>
-                                    <div class="fw-medium">{{ item.address.city }}</div>
-                                    <small class="text-muted">{{ item.address.address }}</small>
+                                    <div class="fw-medium">{{ item.city }}</div>
+                                    <small class="text-muted">{{ item.address }}</small>
                                 </div>
                             </td>
                             <td class="text-center">
@@ -142,11 +142,11 @@
         </div>
 
         <!-- Paginación (si la necesitas en el futuro) -->
-        @if (!isLoading && places.length > 0) {
+        @if (!isLoading && myAccommodations.length > 0) {
         <div class="card-footer bg-white border-0 py-3">
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">
-                    Mostrando {{ places.length }} alojamiento(s)
+                    Mostrando {{ myAccommodations.length }} alojamiento(s)
                 </small>
                 <!-- Aquí puedes agregar paginación si tu backend la soporta -->
             </div>

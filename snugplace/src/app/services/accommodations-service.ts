@@ -523,4 +523,100 @@ private extractMainImage(item: any): string {
   );
 }
 
+getMyAccommodationsHost(page: number = 0): Observable<any> {
+  console.log('🏠 Obteniendo mis alojamientos, página:', page);
+  
+  const params = new HttpParams()
+    .set('page', page.toString());
+  
+  console.log('📤 Enviando GET a:', `${this.apiUrl}/my-accomodations`);
+  
+  return this.http.get<any>(`${this.apiUrl}/my-accomodations`, { params })
+    .pipe(
+      tap(response => {
+        console.log('🔍 RESPUESTA BRUTA COMPLETA:', response);
+        console.log('🔍 ESTRUCTURA DE DATOS:', {
+          tieneError: response?.error,
+          tieneMensaje: response?.message,
+          tieneData: !!response?.data,
+          esArray: Array.isArray(response?.data),
+          tipoData: typeof response?.data
+        });
+      }),
+      map(response => {
+        console.log('✅ Mapeando mis alojamientos...');
+        
+        // ✅ VERIFICAR SI LA RESPUESTA ES VÁLIDA
+        if (!response) {
+          console.error('❌ Respuesta es null o undefined');
+          return this.createErrorResponse('Respuesta inválida del servidor', page);
+        }
+        
+        // ✅ VERIFICAR SI HAY ERROR
+        if (response.error) {
+          console.error('❌ Backend retornó error:', response.message);
+          return this.createErrorResponse(response.message || 'Error del servidor', page);
+        }
+        
+        // ✅ VERIFICAR QUE DATA SEA UN ARRAY
+        let dataArray = response.data;
+        if (!Array.isArray(dataArray)) {
+          console.warn('⚠️ response.data no es un array, convirtiendo:', dataArray);
+          dataArray = [];
+        }
+        
+        console.log('📊 Datos procesados:', {
+          elementos: dataArray.length,
+          totalElements: response.totalElements || dataArray.length,
+          totalPages: response.totalPages || 1
+        });
+        
+        return {
+          error: false,
+          message: response.message || 'Consulta exitosa',
+          data: dataArray.map((item: any, index: number) => {
+            console.log(`📦 Item ${index}:`, item);
+            
+            return {
+              id: item.id,
+              title: item.title || 'Sin título',
+              city: item.city || 'Sin ciudad',
+              priceDay: item.priceDay || 0,
+              guestsCount: item.guestsCount,
+              mainImage: this.extractMainImage(item),
+              averageRating: item.averageRating || 0,
+              reviewsCount: item.reviewsCount || 0,
+              status: item.status || 'ACTIVE'
+            };
+          }),
+          totalElements: response.totalElements || dataArray.length,
+          totalPages: response.totalPages || 1,
+          currentPage: response.currentPage || page,
+          size: response.size || 8
+        };
+      }),
+      catchError(error => {
+        console.error('❌ Error HTTP obteniendo mis alojamientos:', error);
+        console.error('❌ Status:', error.status);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error completo:', error);
+        
+        return of(this.createErrorResponse('Error conectando con el servidor', page));
+      })
+    );
+}
+
+// ✅ MÉTODO AUXILIAR PARA CREAR RESPUESTAS DE ERROR
+private createErrorResponse(message: string, page: number): any {
+  return {
+    error: true,
+    message: message,
+    data: [], // ✅ SIEMPRE retornar array vacío
+    totalElements: 0,
+    totalPages: 0,
+    currentPage: page,
+    size: 8
+  };
+}
+
 }
