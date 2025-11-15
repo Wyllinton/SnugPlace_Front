@@ -76,7 +76,7 @@ export interface BookingDetailUserDTO {
 })
 export class BookingService {
   
-  private apiUrl = 'http://localhost:8080/bookings';
+  private apiUrl = 'http://snugplace-production.up.railway.app/bookings';
 
   constructor(private http: HttpClient) {
     console.log('📅 BookingService inicializado');

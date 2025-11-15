@@ -69,7 +69,7 @@ export interface PageResponse<T> {
 })
 export class AccommodationService {
   
-  private apiUrl = 'http://localhost:8080/accommodations';
+  private apiUrl = 'http://snugplace-production.up.railway.app';
 
   constructor(private http: HttpClient) {
     console.log('🏗️ AccommodationService inicializado');

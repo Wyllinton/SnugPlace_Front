@@ -12,7 +12,7 @@ import { TokenService } from './token-service';
   providedIn: 'root'
 })
 export class UserService {
-  private usersURL = "http://localhost:8080/users"; // ✅ SIN /api/
+  private usersURL = "http://snugplace-production.up.railway.app/users"; // ✅ SIN /api/
 
   constructor(private http: HttpClient, private tokenService: TokenService) { }
 

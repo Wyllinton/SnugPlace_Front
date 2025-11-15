@@ -17,7 +17,7 @@ export interface DecodedToken {
   providedIn: 'root'
 })
 export class AuthService {
-  private authURL = "http://localhost:8080/auth";
+  private authURL = "http://snugplace-production.up.railway.app/auth";
   private tokenKey = 'authToken';
 
   // BehaviorSubject para rastrear el estado de autenticación

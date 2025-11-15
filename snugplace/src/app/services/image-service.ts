@@ -19,7 +19,7 @@ export interface ImageUploadResponse {
   providedIn: 'root'
 })
 export class ImageService {
-  private apiUrl = 'http://localhost:8080/images';
+  private apiUrl = 'http://snugplace-production.up.railway.app/images';
 
   constructor(private http: HttpClient) {}
 
